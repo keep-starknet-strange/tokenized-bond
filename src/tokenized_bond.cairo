@@ -8,8 +8,7 @@ pub mod TokenizedBond {
     use openzeppelin_upgrades::interface::IUpgradeable;
     use openzeppelin_upgrades::UpgradeableComponent;
     use starknet::{ClassHash, ContractAddress};
-    use starknet::storage::{
-        StoragePointerReadAccess, StoragePointerWriteAccess, StoragePathEntry, Map,
+    use starknet::storage::{ StoragePointerWriteAccess, StoragePathEntry, Map,
     };
 
     component!(path: ERC1155Component, storage: erc1155, event: ERC1155Event);
@@ -47,7 +46,7 @@ pub mod TokenizedBond {
 
     #[event]
     #[derive(Drop, starknet::Event)]
-    enum Event {
+    pub enum Event {
         #[flat]
         ERC1155Event: ERC1155Component::Event,
         #[flat]
@@ -58,6 +57,12 @@ pub mod TokenizedBond {
         OwnableEvent: OwnableComponent::Event,
         #[flat]
         UpgradeableEvent: UpgradeableComponent::Event,
+        MinterAdded: MinterAdded,
+    }
+
+    #[derive(Drop, starknet::Event)]
+    pub struct MinterAdded {
+        pub minter: ContractAddress,
     }
 
     #[constructor]
@@ -71,6 +76,7 @@ pub mod TokenizedBond {
         fn add_minter(ref self: ContractState, minter: ContractAddress) {
             self.ownable.assert_only_owner();
             self.minters.entry(minter).write(1);
+            self.emit(MinterAdded { minter });
         }
 
         fn remove_minter(ref self: ContractState, minter: ContractAddress) {
