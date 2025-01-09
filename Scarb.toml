@@ -1,0 +1,23 @@
+[package]
+name = "tokenized_bond"
+version = "0.1.0"
+edition = "2023_11"
+
+[dependencies]
+starknet = "2.9.2"
+openzeppelin = "0.20.0"
+openzeppelin_token = "0.20.0"
+openzeppelin_access = "0.20.0"
+openzeppelin_introspection = "0.20.0"
+openzeppelin_security = "0.20.0"
+openzeppelin_upgrades = "0.20.0"
+
+[dev-dependencies]
+snforge_std = { git = "https://github.com/foundry-rs/starknet-foundry", tag = "v0.32.0" }
+assert_macros = "2.9.2"
+
+[[target.starknet-contract]]
+sierra = true
+
+[scripts]
+test = "snforge test"
