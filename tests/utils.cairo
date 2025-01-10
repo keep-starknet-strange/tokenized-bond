@@ -1,6 +1,5 @@
 use tokenized_bond::utils::constants::OWNER;
-use tokenized_bond::ITokenizedBond;
-use snforge_std::{declare, ContractClassTrait, DeclareResultTrait, start_cheat_caller_address};
+use snforge_std::{declare, ContractClassTrait, DeclareResultTrait};
 use starknet::ContractAddress;
 
 pub trait SerializedAppend<T> {
