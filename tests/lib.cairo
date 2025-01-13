@@ -1,7 +1,8 @@
 mod utils;
 use tokenized_bond::{TokenizedBond, ITokenizedBondDispatcher, ITokenizedBondDispatcherTrait};
 use tokenized_bond::utils::constants::{OWNER, MINTER, ZERO_ADDRESS};
-use snforge_std::{EventSpyAssertionsTrait, spy_events, start_cheat_caller_address};
+use snforge_std::{EventSpyAssertionsTrait, spy_events, start_cheat_caller_address, stop_cheat_caller_address};
+use starknet::get_block_timestamp;
 use utils::setup;
 
 #[test]
@@ -82,4 +83,18 @@ fn test_remove_minter_not_owner() {
     start_cheat_caller_address(tokenized_bond.contract_address, MINTER());
     
     tokenized_bond.remove_minter(MINTER());
+}
+
+#[test]
+#[should_panic(expected: 'Token already exists')]
+fn test_mint_success() {
+    let mut tokenized_bond = ITokenizedBondDispatcher { contract_address: setup()};
+
+    start_cheat_caller_address(tokenized_bond.contract_address, OWNER());
+    
+    tokenized_bond.add_minter(MINTER());
+
+    start_cheat_caller_address(tokenized_bond.contract_address, MINTER());
+    let name: ByteArray = "Test Bond";
+    tokenized_bond.mint(get_block_timestamp() +1, 1, 1, 1, false, name);
 }

@@ -115,6 +115,7 @@ pub mod TokenizedBond {
             custodial: bool,
             name: ByteArray,
         ) {
+            assert(self.tokens.entry(token_id).read().minter != ZERO_ADDRESS(), 'Token already exists');
             assert(self.minters.entry(get_caller_address()).read() == 1, 'Caller is not a minter');
             assert(expiration_date > get_block_timestamp(), 'Expiration date is in the past');
             assert(interest_rate  > 0, 'Interest rate 0');
