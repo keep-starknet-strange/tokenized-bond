@@ -116,8 +116,8 @@ pub mod TokenizedBond {
             name: ByteArray,
         ) {
             assert(self.minters.entry(get_caller_address()).read() == 1, 'Caller is not a minter');
-            assert(expiration_date > get_block_timestamp(), 'Expiration date must be in the future');
-            assert(interest_rate  > 0, 'Interest rate must be greater than 0');
+            assert(expiration_date > get_block_timestamp(), 'Expiration date is in the past');
+            assert(interest_rate  > 0, 'Interest rate 0');
             self.tokens.entry(token_id).write(Token {
                 expiration_date,
                 interest_rate,
@@ -131,7 +131,7 @@ pub mod TokenizedBond {
                 get_caller_address(),
                 token_id,
                 amount,
-                array![expiration_date, interest_rate, custodial, name],
+                array![expiration_date.into()].span(),
             );
         }
     }
