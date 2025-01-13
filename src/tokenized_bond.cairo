@@ -110,7 +110,7 @@ pub mod TokenizedBond {
             ref self: ContractState,
             expiration_date: u64,
             interest_rate: u32,
-            token_id: felt252,
+            token_id: u256,
             amount: u256,
             custodial: bool,
             name: ByteArray,
@@ -128,13 +128,14 @@ pub mod TokenizedBond {
                 name,
             });
             self.erc1155.mint_with_acceptance_check(
-                self.get_contract().get_contract_address(),
+                get_caller_address(),
                 token_id,
                 amount,
                 array![expiration_date, interest_rate, custodial, name],
             );
         }
     }
+
 
     impl ERC1155HooksImpl of ERC1155Component::ERC1155HooksTrait<ContractState> {
         fn before_update(
