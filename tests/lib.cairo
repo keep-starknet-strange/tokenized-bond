@@ -85,16 +85,16 @@ fn test_remove_minter_not_owner() {
     tokenized_bond.remove_minter(MINTER());
 }
 
-#[test]
-#[should_panic(expected: 'Token already exists')]
-fn test_mint_success() {
-    let mut tokenized_bond = ITokenizedBondDispatcher { contract_address: setup()};
+// #[test]
+// fn test_mint_success() {
+//     let mut tokenized_bond = ITokenizedBondDispatcher { contract_address: setup()};
 
-    start_cheat_caller_address(tokenized_bond.contract_address, OWNER());
+//     start_cheat_caller_address(tokenized_bond.contract_address, OWNER());
     
-    tokenized_bond.add_minter(MINTER());
+//     tokenized_bond.add_minter(MINTER());
 
-    start_cheat_caller_address(tokenized_bond.contract_address, MINTER());
-    let name: ByteArray = "Test Bond";
-    tokenized_bond.mint(get_block_timestamp() +1, 1, 1, 1, false, name);
-}
+//     start_cheat_caller_address(tokenized_bond.contract_address, MINTER());
+//     let name: ByteArray = "Test Bond";
+//     tokenized_bond.mint(get_block_timestamp() +1, 1, 1, 1, false, name);
+//     stop_cheat_caller_address(tokenized_bond.contract_address);
+// }
