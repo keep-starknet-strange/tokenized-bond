@@ -1,11 +1,8 @@
-const MINTER_ROLE: felt252 = selector!("MINTER_ROLE");
-
 #[starknet::contract]
 pub mod TokenizedBond {
     use tokenized_bond::ITokenizedBond;
     use tokenized_bond::utils::constants::ZERO_ADDRESS;
     use openzeppelin_access::ownable::OwnableComponent;
-    use openzeppelin_access::accesscontrol::AccessControlComponent;
     use openzeppelin_introspection::src5::SRC5Component;
     use openzeppelin_security::pausable::PausableComponent;
     use openzeppelin_token::erc1155::ERC1155Component;
@@ -13,9 +10,7 @@ pub mod TokenizedBond {
     use openzeppelin_upgrades::UpgradeableComponent;
     use starknet::{ClassHash, ContractAddress};
     use starknet::storage::{ StoragePointerWriteAccess, StoragePathEntry, Map};
-    use super::MINTER_ROLE;
 
-    component!(path: AccessControlComponent, storage: accesscontrol, event: AccessControlEvent);
     component!(path: ERC1155Component, storage: erc1155, event: ERC1155Event);
     component!(path: SRC5Component, storage: src5, event: SRC5Event);
     component!(path: PausableComponent, storage: pausable, event: PausableEvent);
@@ -28,12 +23,8 @@ pub mod TokenizedBond {
     impl PausableImpl = PausableComponent::PausableImpl<ContractState>;
     #[abi(embed_v0)]
     impl OwnableTwoStepMixinImpl = OwnableComponent::OwnableTwoStepMixinImpl<ContractState>;
-    #[abi(embed_v0)]
-    impl AccessControlImpl =
-        AccessControlComponent::AccessControlImpl<ContractState>;
         
         
-    impl AccessControlInternalImpl = AccessControlComponent::InternalImpl<ContractState>;
     impl ERC1155InternalImpl = ERC1155Component::InternalImpl<ContractState>;
     impl PausableInternalImpl = PausableComponent::InternalImpl<ContractState>;
     impl OwnableInternalImpl = OwnableComponent::InternalImpl<ContractState>;
@@ -51,8 +42,6 @@ pub mod TokenizedBond {
         ownable: OwnableComponent::Storage,
         #[substorage(v0)]
         upgradeable: UpgradeableComponent::Storage,
-        #[substorage(v0)]
-        accesscontrol: AccessControlComponent::Storage,
         minters: Map<ContractAddress, u8>,
     }
 
@@ -69,8 +58,6 @@ pub mod TokenizedBond {
         OwnableEvent: OwnableComponent::Event,
         #[flat]
         UpgradeableEvent: UpgradeableComponent::Event,
-        #[flat]
-        AccessControlEvent: AccessControlComponent::Event,
         MinterAdded: MinterAdded,
         MinterRemoved: MinterRemoved,
     }
@@ -89,7 +76,6 @@ pub mod TokenizedBond {
     fn constructor(ref self: ContractState, owner: ContractAddress, token_uri: ByteArray) {
         self.erc1155.initializer(token_uri);
         self.ownable.initializer(owner);
-        self.accesscontrol.initializer();
     }
 
     #[abi(embed_v0)]
