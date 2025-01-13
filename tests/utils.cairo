@@ -1,4 +1,4 @@
-use tokenized_bond::utils::constants::OWNER;
+use tokenized_bond::utils::constants::{OWNER, TOKEN_URI};
 use snforge_std::{declare, ContractClassTrait, DeclareResultTrait};
 use starknet::ContractAddress;
 
@@ -21,6 +21,7 @@ pub fn declare_deploy(contract_name: ByteArray, calldata: Array<felt252>) -> Con
 pub fn setup() -> ContractAddress {
     let mut calldata: Array<felt252> = array![];
     calldata.append_serde(OWNER());
+    calldata.append_serde(TOKEN_URI());
 
     declare_deploy("TokenizedBond", calldata)
 }
