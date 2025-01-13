@@ -1,6 +1,7 @@
 #[starknet::contract]
 pub mod TokenizedBond {
     use tokenized_bond::ITokenizedBond;
+    use tokenized_bond::utils::constants::ZERO_ADDRESS;
     use openzeppelin_access::ownable::OwnableComponent;
     use openzeppelin_introspection::src5::SRC5Component;
     use openzeppelin_security::pausable::PausableComponent;
@@ -8,8 +9,7 @@ pub mod TokenizedBond {
     use openzeppelin_upgrades::interface::IUpgradeable;
     use openzeppelin_upgrades::UpgradeableComponent;
     use starknet::{ClassHash, ContractAddress};
-    use starknet::storage::{ StoragePointerWriteAccess, StoragePathEntry, Map,
-    };
+    use starknet::storage::{ StoragePointerWriteAccess, StoragePathEntry, Map};
 
     component!(path: ERC1155Component, storage: erc1155, event: ERC1155Event);
     component!(path: SRC5Component, storage: src5, event: SRC5Event);
@@ -22,8 +22,9 @@ pub mod TokenizedBond {
     #[abi(embed_v0)]
     impl PausableImpl = PausableComponent::PausableImpl<ContractState>;
     #[abi(embed_v0)]
-    impl OwnableMixinImpl = OwnableComponent::OwnableMixinImpl<ContractState>;
-
+    impl OwnableTwoStepMixinImpl = OwnableComponent::OwnableTwoStepMixinImpl<ContractState>;
+        
+        
     impl ERC1155InternalImpl = ERC1155Component::InternalImpl<ContractState>;
     impl PausableInternalImpl = PausableComponent::InternalImpl<ContractState>;
     impl OwnableInternalImpl = OwnableComponent::InternalImpl<ContractState>;
@@ -58,6 +59,7 @@ pub mod TokenizedBond {
         #[flat]
         UpgradeableEvent: UpgradeableComponent::Event,
         MinterAdded: MinterAdded,
+        MinterRemoved: MinterRemoved,
     }
 
     #[derive(Drop, starknet::Event)]
@@ -65,9 +67,14 @@ pub mod TokenizedBond {
         pub minter: ContractAddress,
     }
 
+    #[derive(Drop, starknet::Event)]
+    pub struct MinterRemoved {
+        pub minter: ContractAddress,
+    }
+
     #[constructor]
-    fn constructor(ref self: ContractState, owner: ContractAddress) {
-        self.erc1155.initializer("");
+    fn constructor(ref self: ContractState, owner: ContractAddress, token_uri: ByteArray) {
+        self.erc1155.initializer(token_uri);
         self.ownable.initializer(owner);
     }
 
@@ -75,6 +82,8 @@ pub mod TokenizedBond {
     impl TokenizedBond of ITokenizedBond<ContractState> {
         fn add_minter(ref self: ContractState, minter: ContractAddress) {
             self.ownable.assert_only_owner();
+            assert(minter != ZERO_ADDRESS(), 'Minter address cant be the zero');
+            assert(self.minters.entry(minter).read() == 0, 'Minter already exists');
             self.minters.entry(minter).write(1);
             self.emit(MinterAdded { minter });
         }
@@ -82,6 +91,7 @@ pub mod TokenizedBond {
         fn remove_minter(ref self: ContractState, minter: ContractAddress) {
             self.ownable.assert_only_owner();
             self.minters.entry(minter).write(0);
+            self.emit(MinterRemoved { minter });
         }
     }
 

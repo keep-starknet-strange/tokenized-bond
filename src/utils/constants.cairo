@@ -7,3 +7,7 @@ pub fn OWNER() -> ContractAddress {
 pub fn MINTER() -> ContractAddress {
     contract_address_const::<'MINTER'>()
 }
+
+pub fn ZERO_ADDRESS() -> ContractAddress {
+    contract_address_const::<0>()
+}
