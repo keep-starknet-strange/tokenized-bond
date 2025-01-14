@@ -8,8 +8,8 @@ pub mod TokenizedBond {
     use openzeppelin_token::erc1155::ERC1155Component;
     use openzeppelin_upgrades::interface::IUpgradeable;
     use openzeppelin_upgrades::UpgradeableComponent;
-    use starknet::{ClassHash, ContractAddress};
-    use starknet::storage::{ StoragePointerWriteAccess, StoragePathEntry, Map};
+    use starknet::{ClassHash, ContractAddress, get_block_timestamp, get_caller_address};
+    use starknet::storage::{StoragePointerWriteAccess, StoragePathEntry, Map};
 
     component!(path: ERC1155Component, storage: erc1155, event: ERC1155Event);
     component!(path: SRC5Component, storage: src5, event: SRC5Event);
@@ -43,6 +43,7 @@ pub mod TokenizedBond {
         #[substorage(v0)]
         upgradeable: UpgradeableComponent::Storage,
         minters: Map<ContractAddress, u8>,
+        tokens: Map<u256, Token>,
     }
 
     #[event]
@@ -72,6 +73,17 @@ pub mod TokenizedBond {
         pub minter: ContractAddress,
     }
 
+    #[derive(Drop, Serde, starknet::Store)]
+    pub struct Token {
+        pub expiration_date: u64,
+        pub interest_rate: u32,
+        pub minter: ContractAddress,
+        pub minter_is_operator: bool,
+        pub token_frozen: bool,
+        pub token_itr_paused: bool,
+        pub name: ByteArray,
+    }
+
     #[constructor]
     fn constructor(ref self: ContractState, owner: ContractAddress, token_uri: ByteArray) {
         self.erc1155.initializer(token_uri);
@@ -93,7 +105,38 @@ pub mod TokenizedBond {
             self.minters.entry(minter).write(0);
             self.emit(MinterRemoved { minter });
         }
+
+        fn mint(
+            ref self: ContractState,
+            expiration_date: u64,
+            interest_rate: u32,
+            token_id: u256,
+            amount: u256,
+            custodial: bool,
+            name: ByteArray,
+        ) {
+            assert(self.tokens.entry(token_id).read().minter == ZERO_ADDRESS(), 'Token already exists');
+            assert(self.minters.entry(get_caller_address()).read() == 1, 'Caller is not a minter');
+            assert(expiration_date > get_block_timestamp(), 'Expiration date is in the past');
+            assert(interest_rate  > 0, 'Interest rate 0');
+            self.tokens.entry(token_id).write(Token {
+                expiration_date,
+                interest_rate,
+                minter: get_caller_address(),
+                minter_is_operator: false,
+                token_frozen: false,
+                token_itr_paused: false,
+                name,
+            });
+            self.erc1155.mint_with_acceptance_check(
+                get_caller_address(),
+                token_id,
+                amount,
+                array![expiration_date.into()].span(),
+            );
+        }
     }
+
 
     impl ERC1155HooksImpl of ERC1155Component::ERC1155HooksTrait<ContractState> {
         fn before_update(
@@ -121,18 +164,6 @@ pub mod TokenizedBond {
         fn unpause(ref self: ContractState) {
             self.ownable.assert_only_owner();
             self.pausable.unpause();
-        }
-
-        #[external(v0)]
-        fn mint(
-            ref self: ContractState,
-            account: ContractAddress,
-            token_id: u256,
-            value: u256,
-            data: Span<felt252>,
-        ) {
-            self.ownable.assert_only_owner();
-            self.erc1155.mint_with_acceptance_check(account, token_id, value, data);
         }
 
         #[external(v0)]
