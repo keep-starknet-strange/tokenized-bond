@@ -1,7 +1,7 @@
 mod utils;
 use tokenized_bond::{TokenizedBond, ITokenizedBondDispatcher, ITokenizedBondDispatcherTrait};
 use openzeppelin_token::erc1155::interface::{IERC1155Dispatcher, IERC1155DispatcherTrait};
-use tokenized_bond::utils::constants::{OWNER, MINTER, ZERO_ADDRESS, INTEREST_RATE, MINT_AMOUNT, TOKEN_NAME, MINT_ID, TIME_IN_THE_FUTURE, TIME_IN_THE_PAST};
+use tokenized_bond::utils::constants::{OWNER, MINTER, ZERO_ADDRESS, INTEREST_RATE, INTEREST_RATE_ZERO, MINT_AMOUNT, TOKEN_NAME, MINT_ID, TIME_IN_THE_FUTURE};
 use snforge_std::{EventSpyAssertionsTrait, spy_events, start_cheat_caller_address, start_cheat_block_timestamp_global, stop_cheat_block_timestamp_global};
 use starknet::get_block_timestamp;
 use utils::{setup, setup_receiver};
@@ -144,4 +144,17 @@ fn test_mint_with_expired_date() {
     tokenized_bond.mint(time_in_the_past, INTEREST_RATE(), MINT_ID(), MINT_AMOUNT(), false, TOKEN_NAME());
 
     stop_cheat_block_timestamp_global()
+}
+
+#[test]
+#[should_panic(expected: 'Interest rate 0')]
+fn test_mint_when_interest_rate_is_zero() {
+    let mut tokenized_bond = ITokenizedBondDispatcher { contract_address: setup()};
+    start_cheat_caller_address(tokenized_bond.contract_address, OWNER());
+
+    tokenized_bond.add_minter(MINTER());
+
+    start_cheat_caller_address(tokenized_bond.contract_address, MINTER());
+
+    tokenized_bond.mint(TIME_IN_THE_FUTURE(), INTEREST_RATE_ZERO(), MINT_ID(), MINT_AMOUNT(), false, TOKEN_NAME());
 }

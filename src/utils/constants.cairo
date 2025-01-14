@@ -16,6 +16,10 @@ pub fn INTEREST_RATE() -> u32 {
     10
 }
 
+pub fn INTEREST_RATE_ZERO() -> u32 {
+    0
+}
+
 pub fn MINT_AMOUNT() -> u256 {
     100
 }
@@ -41,3 +45,4 @@ pub fn TIME_IN_THE_FUTURE() -> u64 {
 pub fn TIME_IN_THE_PAST() -> u64 {
     get_block_timestamp() - 1000
 }
+
