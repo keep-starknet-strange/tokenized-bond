@@ -1,6 +1,13 @@
-use tokenized_bond::utils::constants::OWNER;
+use tokenized_bond::utils::constants::{OWNER, URI};
+// use test::mocks::
 use snforge_std::{declare, ContractClassTrait, DeclareResultTrait};
-use starknet::ContractAddress;
+use starknet::{ContractAddress};
+
+// type ComponentState = ERC1155Component::ComponentState<ERC1155Mock::ContractState>;
+
+// fn COMPONENT_STATE() -> ComponentState {
+//     ERC1155Component::component_state_for_testing()
+// }
 
 pub trait SerializedAppend<T> {
     fn append_serde(ref self: Array<felt252>, value: T);
@@ -21,6 +28,26 @@ pub fn declare_deploy(contract_name: ByteArray, calldata: Array<felt252>) -> Con
 pub fn setup() -> ContractAddress {
     let mut calldata: Array<felt252> = array![];
     calldata.append_serde(OWNER());
-
+    calldata.append_serde(URI());
     declare_deploy("TokenizedBond", calldata)
 }
+
+pub fn setup_receiver() -> ContractAddress {
+    // let state = COMPONENT_STATE();
+    let mut calldata: Array<felt252> = array![];
+    
+    declare_deploy("MockERC1155Receiver", calldata)
+}
+
+// fn setup_1155() -> (ComponentState, ContractAddress) {
+    // let mut state = COMPONENT_STATE();
+    // state.initializer("URI");
+
+    // let owner = setup_account();
+    // let token_ids = array![TOKEN_ID, TOKEN_ID_2].span();
+    // let values = array![TOKEN_VALUE, TOKEN_VALUE_2].span();
+
+    // state.batch_mint_with_acceptance_check(owner, token_ids, values, array![].span());
+
+    // (state, owner)
+// }

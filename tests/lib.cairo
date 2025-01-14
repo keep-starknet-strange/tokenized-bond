@@ -1,9 +1,9 @@
 mod utils;
 use tokenized_bond::{TokenizedBond, ITokenizedBondDispatcher, ITokenizedBondDispatcherTrait};
-use tokenized_bond::utils::constants::{OWNER, MINTER, ZERO_ADDRESS};
-use snforge_std::{EventSpyAssertionsTrait, spy_events, start_cheat_caller_address, stop_cheat_caller_address};
-use starknet::get_block_timestamp;
-use utils::setup;
+use openzeppelin_token::erc1155::interface::{IERC1155Dispatcher, IERC1155DispatcherTrait};
+use tokenized_bond::utils::constants::{OWNER, MINTER, ZERO_ADDRESS, INTEREST_RATE, MINT_AMOUNT, TOKEN_NAME, MINT_ID, TIME_IN_THE_FUTURE};
+use snforge_std::{EventSpyAssertionsTrait, spy_events, start_cheat_caller_address};
+use utils::{setup, setup_receiver};
 
 #[test]
 fn test_add_minter() {
@@ -85,16 +85,20 @@ fn test_remove_minter_not_owner() {
     tokenized_bond.remove_minter(MINTER());
 }
 
-// #[test]
-// fn test_mint_success() {
-//     let mut tokenized_bond = ITokenizedBondDispatcher { contract_address: setup()};
+#[test]
+fn test_mint_success() {
+    let mut tokenized_bond = ITokenizedBondDispatcher { contract_address: setup()};
+    let receiver = setup_receiver();
+    let erc_1155 = IERC1155Dispatcher { contract_address: tokenized_bond.contract_address};
+    start_cheat_caller_address(tokenized_bond.contract_address, OWNER());
 
-//     start_cheat_caller_address(tokenized_bond.contract_address, OWNER());
-    
-//     tokenized_bond.add_minter(MINTER());
+    tokenized_bond.add_minter(receiver);
 
-//     start_cheat_caller_address(tokenized_bond.contract_address, MINTER());
-//     let name: ByteArray = "Test Bond";
-//     tokenized_bond.mint(get_block_timestamp() +1, 1, 1, 1, false, name);
-//     stop_cheat_caller_address(tokenized_bond.contract_address);
-// }
+    start_cheat_caller_address(tokenized_bond.contract_address, receiver);
+
+    tokenized_bond.mint(TIME_IN_THE_FUTURE(), INTEREST_RATE(), MINT_ID(), MINT_AMOUNT(), false, TOKEN_NAME());
+    start_cheat_caller_address(tokenized_bond.contract_address, tokenized_bond.contract_address);
+
+    let minter_balance = erc_1155.balance_of(account: receiver, token_id: MINT_ID());
+    assert(minter_balance == MINT_AMOUNT(), 'Minter balance is not correct');
+}
