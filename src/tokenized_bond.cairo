@@ -135,6 +135,13 @@ pub mod TokenizedBond {
                 array![expiration_date.into()].span(),
             );
         }
+
+        fn burn(ref self: ContractState, token_id: u256, amount: u256) {
+            self.token_exists(token_id);
+            self.only_token_minter(token_id);
+            assert(self.erc1155.balance_of(get_caller_address(), token_id) >= amount || amount == 0, 'invalid burn amount');
+            self.erc1155.burn(get_caller_address(), token_id, amount);
+        }
     }
 
 
@@ -206,6 +213,17 @@ pub mod TokenizedBond {
         fn upgrade(ref self: ContractState, new_class_hash: ClassHash) {
             self.ownable.assert_only_owner();
             self.upgradeable.upgrade(new_class_hash);
+        }
+    }
+
+    #[generate_trait]
+    impl InternalImpl of InternalTrait {
+        fn only_token_minter(self: @ContractState, token_id: u256) {
+            assert(self.tokens.entry(token_id).read().minter == get_caller_address(), 'Caller is not token minter');
+        }
+
+        fn token_exists(self: @ContractState, token_id: u256) {
+            assert(self.tokens.entry(token_id).read().minter != ZERO_ADDRESS(), 'Token does not exist');
         }
     }
 }
