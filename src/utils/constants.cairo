@@ -46,3 +46,7 @@ pub fn TIME_IN_THE_PAST() -> u64 {
     get_block_timestamp() - 1000
 }
 
+pub fn TOKEN_URI() -> ByteArray {
+    let uri: ByteArray = "https://example.com/";
+    uri
+}
