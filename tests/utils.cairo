@@ -38,16 +38,3 @@ pub fn setup_receiver() -> ContractAddress {
     
     declare_deploy("MockERC1155Receiver", calldata)
 }
-
-// fn setup_1155() -> (ComponentState, ContractAddress) {
-    // let mut state = COMPONENT_STATE();
-    // state.initializer("URI");
-
-    // let owner = setup_account();
-    // let token_ids = array![TOKEN_ID, TOKEN_ID_2].span();
-    // let values = array![TOKEN_VALUE, TOKEN_VALUE_2].span();
-
-    // state.batch_mint_with_acceptance_check(owner, token_ids, values, array![].span());
-
-    // (state, owner)
-// }
