@@ -22,9 +22,10 @@ pub mod TokenizedBond {
     #[abi(embed_v0)]
     impl PausableImpl = PausableComponent::PausableImpl<ContractState>;
     #[abi(embed_v0)]
-    impl OwnableTwoStepMixinImpl = OwnableComponent::OwnableTwoStepMixinImpl<ContractState>;
-        
-        
+    impl OwnableTwoStepMixinImpl =
+        OwnableComponent::OwnableTwoStepMixinImpl<ContractState>;
+
+
     impl ERC1155InternalImpl = ERC1155Component::InternalImpl<ContractState>;
     impl PausableInternalImpl = PausableComponent::InternalImpl<ContractState>;
     impl OwnableInternalImpl = OwnableComponent::InternalImpl<ContractState>;
@@ -115,31 +116,40 @@ pub mod TokenizedBond {
             custodial: bool,
             name: ByteArray,
         ) {
-            assert(self.tokens.entry(token_id).read().minter == ZERO_ADDRESS(), 'Token already exists');
+            assert(
+                self.tokens.entry(token_id).read().minter == ZERO_ADDRESS(), 'Token already exists',
+            );
             assert(self.minters.entry(get_caller_address()).read() == 1, 'Caller is not a minter');
             assert(expiration_date > get_block_timestamp(), 'Expiration date is in the past');
-            assert(interest_rate  > 0, 'Interest rate 0');
-            self.tokens.entry(token_id).write(Token {
-                expiration_date,
-                interest_rate,
-                minter: get_caller_address(),
-                minter_is_operator: false,
-                token_frozen: false,
-                token_itr_paused: false,
-                name,
-            });
-            self.erc1155.mint_with_acceptance_check(
-                get_caller_address(),
-                token_id,
-                amount,
-                array![expiration_date.into()].span(),
-            );
+            assert(interest_rate > 0, 'Interest rate 0');
+            self
+                .tokens
+                .entry(token_id)
+                .write(
+                    Token {
+                        expiration_date,
+                        interest_rate,
+                        minter: get_caller_address(),
+                        minter_is_operator: false,
+                        token_frozen: false,
+                        token_itr_paused: false,
+                        name,
+                    },
+                );
+            self
+                .erc1155
+                .mint_with_acceptance_check(
+                    get_caller_address(), token_id, amount, array![expiration_date.into()].span(),
+                );
         }
 
         fn burn(ref self: ContractState, token_id: u256, amount: u256) {
             self.token_exists(token_id);
             self.only_token_minter(token_id);
-            assert(self.erc1155.balance_of(get_caller_address(), token_id) >= amount || amount == 0, 'invalid burn amount');
+            assert(
+                self.erc1155.balance_of(get_caller_address(), token_id) >= amount || amount == 0,
+                'invalid burn amount',
+            );
             self.erc1155.burn(get_caller_address(), token_id, amount);
         }
     }
@@ -207,7 +217,7 @@ pub mod TokenizedBond {
             self.set_base_uri(baseUri);
         }
     }
-    
+
     #[abi(embed_v0)]
     impl UpgradeableImpl of IUpgradeable<ContractState> {
         fn upgrade(ref self: ContractState, new_class_hash: ClassHash) {
@@ -219,11 +229,16 @@ pub mod TokenizedBond {
     #[generate_trait]
     impl InternalImpl of InternalTrait {
         fn only_token_minter(self: @ContractState, token_id: u256) {
-            assert(self.tokens.entry(token_id).read().minter == get_caller_address(), 'Caller is not token minter');
+            assert(
+                self.tokens.entry(token_id).read().minter == get_caller_address(),
+                'Caller is not token minter',
+            );
         }
 
         fn token_exists(self: @ContractState, token_id: u256) {
-            assert(self.tokens.entry(token_id).read().minter != ZERO_ADDRESS(), 'Token does not exist');
+            assert(
+                self.tokens.entry(token_id).read().minter != ZERO_ADDRESS(), 'Token does not exist',
+            );
         }
     }
 }

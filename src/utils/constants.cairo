@@ -8,6 +8,14 @@ pub fn MINTER() -> ContractAddress {
     contract_address_const::<'MINTER'>()
 }
 
+pub fn NOT_MINTER() -> ContractAddress {
+    contract_address_const::<'NOT_MINTER'>()
+}
+
+pub fn CUSTODIAL_FALSE() -> bool {
+    false
+}
+
 pub fn ZERO_ADDRESS() -> ContractAddress {
     contract_address_const::<0>()
 }
