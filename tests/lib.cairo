@@ -121,7 +121,7 @@ fn test_token_already_minted() {
 
 #[test]
 #[should_panic(expected: 'Caller is not a minter')]
-fn test_mint_not_minter() {
+fn test_mint_when_caller_is_not_minter() {
     let mut tokenized_bond = ITokenizedBondDispatcher { contract_address: setup()};
     start_cheat_caller_address(tokenized_bond.contract_address, OWNER());
 
