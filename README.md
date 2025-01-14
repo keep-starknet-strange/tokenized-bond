@@ -2,10 +2,12 @@
 
 Ejara tokenized bonds aim to fractionalize bonds into the smallest units for enhanced accessibility. 
 
-### Key features:
+### Key features (work on this):
 
-- Scalability for managing high transaction volumes.
-- Secure contract management leveraging cairo.
+- Scalability for managing high transaction volumes. // way to basic
+- Secure contract management leveraging cairo. // way to basic
+
+- 
 
 # Codebase
 The smart contract is implemented using Cairo 1.0 and relies on StarkNet's architecture.
@@ -58,9 +60,9 @@ Github repo: https://github.com/keep-starknet-strange/tokenized-bond
 - `remove_minter(address minter)`: Removes an existing minter.
 - `replace_minter(address old_minter, address new_minter)`: Replaces an old minter with a new one.
 
-# Explanation
+# Explanation (Why and now on cairo and starknet?) (work on this)
 
-# Test Cases
+# Test Cases (need zack help)
 
-# Deployment on Starknet Sepolia 
+# Deployment on Starknet Sepolia (need zack help)
 
