@@ -239,7 +239,7 @@ fn test_burn_token() {
 }
 
 #[test]
-#[should_panic(expected: 'token does not exist')]
+#[should_panic(expected: 'Token does not exist')]
 fn test_burn_token_that_does_not_exist() {
     let mut tokenized_bond = ITokenizedBondDispatcher { contract_address: setup() };
     start_cheat_caller_address(tokenized_bond.contract_address, OWNER());
@@ -251,7 +251,7 @@ fn test_burn_token_that_does_not_exist() {
 }
 
 #[test]
-#[should_panic(expected: 'Caller is not a minter')]
+#[should_panic(expected: 'Caller is not token minter')]
 fn test_burn_with_invalid_minter() {
     let mut tokenized_bond = ITokenizedBondDispatcher { contract_address: setup() };
     let minter = setup_receiver();
@@ -270,4 +270,31 @@ fn test_burn_with_invalid_minter() {
         );
     start_cheat_caller_address(tokenized_bond.contract_address, NOT_MINTER());
     tokenized_bond.burn(MINT_ID(), MINT_AMOUNT());
+}
+
+#[test]
+#[should_panic(expected: 'Invalid burn amount')]
+fn test_burn_with_too_high_amount() {
+    let mut tokenized_bond = ITokenizedBondDispatcher { contract_address: setup() };
+    let minter = setup_receiver();
+    let erc_1155 = IERC1155Dispatcher { contract_address: tokenized_bond.contract_address };
+    start_cheat_caller_address(tokenized_bond.contract_address, OWNER());
+
+    tokenized_bond.add_minter(minter);
+    start_cheat_caller_address(tokenized_bond.contract_address, minter);
+
+    tokenized_bond
+        .mint(
+            TIME_IN_THE_FUTURE(),
+            INTEREST_RATE(),
+            MINT_ID(),
+            MINT_AMOUNT(),
+            CUSTODIAL_FALSE(),
+            TOKEN_NAME(),
+        );
+    let pre_burn_minter_balance = erc_1155.balance_of(account: minter, token_id: MINT_ID());
+    assert(pre_burn_minter_balance == MINT_AMOUNT(), 'pre burn balance is incorrect');
+    start_cheat_caller_address(tokenized_bond.contract_address, minter);
+    let too_high_amount = MINT_AMOUNT() + 1;
+    tokenized_bond.burn(MINT_ID(), too_high_amount);
 }
