@@ -62,6 +62,15 @@ Github repo: https://github.com/keep-starknet-strange/tokenized-bond
 
 # Explanation (Why and now on cairo and starknet?) (work on this)
 
+1. Scalability: StarkNet, as a Layer 2 solution, provides high throughput, essential for managing a large number of fractional bond tokens.
+2. Security: Cairo 1.0's strong typing and formal verification capabilities enhance the security of smart contracts, crucial for financial instruments like bonds.
+3. Interoperability: StarkNet's compatibility with Ethereum and other blockchain ecosystems allows for seamless integration with existing DeFi protocols and traditional financial systems.
+4. Cost-efficiency: By leveraging StarkNet's Layer 2 technology, Ejara can offer lower transaction fees to users, making micro-investments in bonds more economically viable (https://l2fees.info/).
+5. Programmability: Cairo 1.0's advanced features allow for the implementation of complex bond logic, including automated interest payments and maturity handling.
+6. Future-proofing: As Cairo and StarkNet continue to evolve, Ejara's tokenized bonds can benefit from ongoing improvements in the ecosystem, ensuring long-term viability and adaptability
+
+Note: Can we mention defi spring campaign to the eraja team as we can help them achieve better yeilds or partnerships 
+
 # Test Cases (need zack help)
 
 # Deployment on Starknet Sepolia (need zack help)
