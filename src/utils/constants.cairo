@@ -37,3 +37,7 @@ pub fn URI() -> ByteArray {
 pub fn TIME_IN_THE_FUTURE() -> u64 {
     get_block_timestamp() + 1000
 }
+
+pub fn TIME_IN_THE_PAST() -> u64 {
+    get_block_timestamp() - 1000
+}
