@@ -65,6 +65,7 @@ pub mod TokenizedBond {
         UpgradeableEvent: UpgradeableComponent::Event,
         MinterAdded: MinterAdded,
         MinterRemoved: MinterRemoved,
+        MinterReplaced: MinterReplaced,
     }
 
     #[derive(Drop, starknet::Event)]
@@ -75,6 +76,13 @@ pub mod TokenizedBond {
     #[derive(Drop, starknet::Event)]
     pub struct MinterRemoved {
         pub minter: ContractAddress,
+    }
+
+    #[derive(Drop, starknet::Event)]
+    pub struct MinterReplaced {
+        pub token_id: u256,
+        pub old_minter: ContractAddress,
+        pub new_minter: ContractAddress,
     }
 
     #[derive(Drop, Serde, starknet::Store)]
@@ -130,6 +138,29 @@ pub mod TokenizedBond {
             self.ownable.assert_only_owner();
             assert(self.minters.entry(old_minter).read() == 1, Errors::OLD_MINTER_DOES_NOT_EXIST);
             assert(self.minters.entry(new_minter).read() == 0, Errors::NEW_MINTER_ALREADY_EXISTS);
+            let number_of_tokens_to_replace = self.minter_tokens.entry(old_minter).len();
+
+            // replace old minter with new minter in all minted tokens
+            for element in 0..number_of_tokens_to_replace {
+                let token_id = self.minter_tokens.entry(old_minter).at(element).read();
+                let old_minter_balance = self.erc1155.balance_of(old_minter, token_id);
+
+                // replace old minter with new minter in all minted tokens
+                self.erc1155.mint_with_acceptance_check(new_minter, token_id, old_minter_balance, array![].span());
+                self.erc1155.burn(old_minter, token_id, old_minter_balance);
+
+                //add  new minter with respective tokens
+                self.minter_tokens.entry(new_minter).append().write(token_id);
+                let mut token = self.tokens.entry(token_id).read();
+                token.minter = new_minter;
+                self.tokens.entry(token_id).write(token);
+
+                self.emit(MinterReplaced {
+                    token_id,
+                    old_minter,
+                    new_minter,
+                });
+            }
             self.minters.entry(old_minter).write(0);
             self.minters.entry(new_minter).write(1);
             self.emit(MinterRemoved { minter: old_minter });
@@ -170,7 +201,7 @@ pub mod TokenizedBond {
             self
                 .erc1155
                 .mint_with_acceptance_check(
-                    minter, token_id, amount, array![expiration_date.into()].span(),
+                    minter, token_id, amount, array![].span(),
                 );
         }
 
