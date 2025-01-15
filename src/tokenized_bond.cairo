@@ -134,7 +134,9 @@ pub mod TokenizedBond {
             self.emit(MinterRemoved { minter });
         }
 
-        fn replace_minter(ref self: ContractState, old_minter: ContractAddress, new_minter: ContractAddress) {
+        fn replace_minter(
+            ref self: ContractState, old_minter: ContractAddress, new_minter: ContractAddress,
+        ) {
             self.ownable.assert_only_owner();
             assert(self.minters.entry(old_minter).read() == 1, Errors::OLD_MINTER_DOES_NOT_EXIST);
             assert(self.minters.entry(new_minter).read() == 0, Errors::NEW_MINTER_ALREADY_EXISTS);
@@ -148,7 +150,11 @@ pub mod TokenizedBond {
                 let old_minter_balance = self.erc1155.balance_of(old_minter, token_id);
 
                 // replace old minter with new minter in all minted tokens
-                self.erc1155.mint_with_acceptance_check(new_minter, token_id, old_minter_balance, array![].span());
+                self
+                    .erc1155
+                    .mint_with_acceptance_check(
+                        new_minter, token_id, old_minter_balance, array![].span(),
+                    );
                 self.erc1155.burn(old_minter, token_id, old_minter_balance);
 
                 //add  new minter with respective tokens
@@ -157,11 +163,7 @@ pub mod TokenizedBond {
                 token.minter = new_minter;
                 self.tokens.entry(token_id).write(token);
 
-                self.emit(MinterReplaced {
-                    token_id,
-                    old_minter,
-                    new_minter,
-                });
+                self.emit(MinterReplaced { token_id, old_minter, new_minter });
             };
             self.minters.entry(old_minter).write(0);
             self.minters.entry(new_minter).write(1);
@@ -180,10 +182,13 @@ pub mod TokenizedBond {
         ) {
             let minter = get_caller_address();
             assert(
-                self.tokens.entry(token_id).read().minter == ZERO_ADDRESS(), Errors::TOKEN_ALREADY_EXISTS,
+                self.tokens.entry(token_id).read().minter == ZERO_ADDRESS(),
+                Errors::TOKEN_ALREADY_EXISTS,
             );
             assert(self.minters.entry(minter).read() == 1, Errors::CALLER_IS_NOT_A_MINTER);
-            assert(expiration_date > get_block_timestamp(), Errors::TOKEN_EXPIRATION_DATE_IN_THE_PAST);
+            assert(
+                expiration_date > get_block_timestamp(), Errors::TOKEN_EXPIRATION_DATE_IN_THE_PAST,
+            );
             assert(interest_rate > 0, 'Interest rate 0');
             self
                 .tokens
@@ -200,11 +205,7 @@ pub mod TokenizedBond {
                     },
                 );
             self.minter_tokens.entry(minter).append().write(token_id);
-            self
-                .erc1155
-                .mint_with_acceptance_check(
-                    minter, token_id, amount, array![].span(),
-                );
+            self.erc1155.mint_with_acceptance_check(minter, token_id, amount, array![].span());
         }
 
         fn burn(ref self: ContractState, token_id: u256, amount: u256) {
@@ -302,7 +303,8 @@ pub mod TokenizedBond {
 
         fn token_exists(self: @ContractState, token_id: u256) {
             assert(
-                self.tokens.entry(token_id).read().minter != ZERO_ADDRESS(), Errors::TOKEN_DOES_NOT_EXIST,
+                self.tokens.entry(token_id).read().minter != ZERO_ADDRESS(),
+                Errors::TOKEN_DOES_NOT_EXIST,
             );
         }
     }

@@ -3,7 +3,7 @@ use tokenized_bond::{TokenizedBond, ITokenizedBondDispatcher, ITokenizedBondDisp
 use openzeppelin_token::erc1155::interface::{IERC1155Dispatcher, IERC1155DispatcherTrait};
 use tokenized_bond::utils::constants::{
     OWNER, MINTER, ZERO_ADDRESS, INTEREST_RATE, INTEREST_RATE_ZERO, MINT_AMOUNT, TOKEN_NAME,
-    MINT_ID, TIME_IN_THE_FUTURE, CUSTODIAL_FALSE, NOT_MINTER, NEW_MINTER
+    MINT_ID, TIME_IN_THE_FUTURE, CUSTODIAL_FALSE, NOT_MINTER, NEW_MINTER,
 };
 use snforge_std::{
     EventSpyAssertionsTrait, spy_events, start_cheat_caller_address, stop_cheat_caller_address,
@@ -325,9 +325,7 @@ fn test_replace_minter() {
 
     let expected_tokenized_bond_event = TokenizedBond::Event::MinterReplaced(
         TokenizedBond::MinterReplaced {
-            token_id: MINT_ID(),
-            old_minter: minter,
-            new_minter: new_minter,
+            token_id: MINT_ID(), old_minter: minter, new_minter: new_minter,
         },
     );
     let new_minter_balance = erc_1155.balance_of(account: new_minter, token_id: MINT_ID());
@@ -337,23 +335,18 @@ fn test_replace_minter() {
     assert(new_minter_balance == MINT_AMOUNT(), 'New minter balance incorrect');
 
     start_cheat_caller_address(tokenized_bond.contract_address, new_minter);
-    tokenized_bond
-        .burn(
-            token_id: MINT_ID(),
-            amount: 1,
-        );
-    let new_minter_balance_after_burn = erc_1155.balance_of(account: new_minter, token_id: MINT_ID());
+    tokenized_bond.burn(token_id: MINT_ID(), amount: 1);
+    let new_minter_balance_after_burn = erc_1155
+        .balance_of(account: new_minter, token_id: MINT_ID());
     assert(new_minter_balance_after_burn == MINT_AMOUNT() - 1, 'New minter balance incorrect');
     spy.assert_emitted(@array![(tokenized_bond.contract_address, expected_tokenized_bond_event)]);
-
-
 }
 
 #[test]
 #[should_panic(expected: 'Caller is not the owner')]
 fn test_replace_minter_when_caller_is_not_owner() {
     let mut tokenized_bond = ITokenizedBondDispatcher { contract_address: setup() };
-   
+
     stop_cheat_caller_address(tokenized_bond.contract_address);
     tokenized_bond.replace_minter(MINTER(), NEW_MINTER());
 }
