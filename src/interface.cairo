@@ -4,6 +4,7 @@ use starknet::ContractAddress;
 pub trait ITokenizedBond<TState> {
     fn add_minter(ref self: TState, minter: ContractAddress);
     fn remove_minter(ref self: TState, minter: ContractAddress);
+    fn replace_minter(ref self: TState, old_minter: ContractAddress, new_minter: ContractAddress);
     fn mint(
         ref self: TState,
         expiration_date: u64,
