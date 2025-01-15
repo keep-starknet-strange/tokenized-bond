@@ -12,10 +12,8 @@ Ejara tokenized bonds aim to fractionalize bonds into the smallest units for enh
 - Multiple token types in a single contract
 - Batch operations support
 - `Span<felt252>` data argument for transfers
-- `IERC1155Receiver` compliance requirements
 - Interface ID validation
 
-### ERC-1155 Compatibility in Cairo
 Although Starknet is not EVM compatible, this implementation aims to be as close as possible to the ERC1155 standard but some differences can still be found, such as:
 - The optional `data` argument in both `safe_transfer_from` and `safe_batch_transfer_from` is implemented as `Span<felt252>`.
 - `IERC1155Receiver` compliant contracts must implement `SRC5` and register the `IERC1155Receiver` interface ID.
@@ -49,10 +47,6 @@ Although Starknet is not EVM compatible, this implementation aims to be as close
   - Administrative action logging
 
 ## Technical Stack
-
-### Requirements
-- Cairo 1.0
-- Scarb package manager
 
 ### Components
 Built with OpenZeppelin components:
@@ -93,6 +87,41 @@ Built with OpenZeppelin components:
 
 ### Setup
 
+#### Setting up Scarb
+
+1. **Install asdf**
+    ```
+    brew install asdf
+    ```
+    Link: https://asdf-vm.com/guide/getting-started.html
+
+
+2. **Verify that asdf is installed**
+    ```
+    asdf --version
+    ```
+
+3. **Install the asdf Scarb plugin**
+    ```
+    asdf plugin add scarb
+    ```
+
+4. **Install the latest version of Scarb**
+    ```
+    asdf install scarb 2.9.2
+    ```
+
+5. **Set a global version for Scarb (need for using scarb init)**
+    ```
+    asdf global scarb 2.9.2
+    ```
+
+6. **Restart the terminal and verify that Scarb is installed correctly**
+    ```
+    scarb --version
+    ```
+
+## Clone this repo
 1. **Clone the repo**
     ```
     git clone https://github.com/keep-starknet-strange/tokenized-bond.git
@@ -106,22 +135,12 @@ Built with OpenZeppelin components:
     ```
     scarb test
     ```
-# Test Cases (need zack help)
-
-[PASS] tokenized_bond_tests::test_mint_success (gas: ~1065) 
-[PASS] tokenized_bond_tests::test_burn_with_invalid_minter (gas: ~1070)
-[PASS] tokenized_bond_tests::test_remove_minter_not_owner (gas: ~427)
-[PASS] tokenized_bond_tests::test_mint_when_interest_rate_is_zero (gas: ~501)
-[PASS] tokenized_bond_tests::test_mint_with_expired_date (gas: ~502)
-[PASS] tokenized_bond_tests::test_add_minter_zero_address (gas: ~427)
-[PASS] tokenized_bond_tests::test_burn_token_that_does_not_exist (gas: ~499)
-[PASS] tokenized_bond_tests::test_remove_minter (gas: ~436)
-[PASS] tokenized_bond_tests::test_add_minter_not_owner (gas: ~427)
-[PASS] tokenized_bond_tests::test_token_already_minted (gas: ~1066)
-[PASS] tokenized_bond_tests::test_add_minter_already_exists (gas: ~496)
-[PASS] tokenized_bond_tests::test_mint_when_caller_is_not_minter (gas: ~432)
-[PASS] tokenized_bond_tests::test_add_minter (gas: ~496)
-[PASS] tokenized_bond_tests::test_burn_token (gas: ~1017)
 
 
 # Deployment on Starknet Sepolia (need zack help)
+
+1. Set environment variables in .env file
+
+2. Use Starkli to deploy the contract
+
+3. In scripts folder, run the bash script to deploy the contract
