@@ -160,7 +160,7 @@ pub mod TokenizedBond {
                     old_minter,
                     new_minter,
                 });
-            }
+            };
             self.minters.entry(old_minter).write(0);
             self.minters.entry(new_minter).write(1);
             self.emit(MinterRemoved { minter: old_minter });
