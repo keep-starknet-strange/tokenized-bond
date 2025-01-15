@@ -4,7 +4,7 @@ Ejara smart contract implementation for tokenized bonds using the ERC-1155 stand
 
 ## Overview
 
-Ejara tokenized bonds aim to fractionalize bonds into the smallest units for enhanced accessibility. The smart contract provides a secure and efficient way to manage tokenized bonds on StarkNet.
+Ejara tokenized bonds aim to fractionalize bonds into the smallest units for enhanced accessibility. This smart contract provides a secure and efficient way to manage tokenized bonds on StarkNet.
 
 ## Features
 
