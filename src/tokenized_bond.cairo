@@ -104,12 +104,12 @@ pub mod TokenizedBond {
         pub const TOKEN_DOES_NOT_EXIST: felt252 = 'Token does not exist';
         pub const TOKEN_EXPIRATION_DATE_IN_THE_PAST: felt252 = 'Expiration date is in the past';
         pub const TOKEN_INTEREST_RATE_ZERO: felt252 = 'Interest rate 0';
-        pub const TOKEN_INVALID_BURN_AMOUNT: felt252 = 'invalid burn amount';
-        pub const TOKEN_MINTER_IS_NOT_MINTER: felt252 = 'Token minter is not a minter';
+        pub const TOKEN_INVALID_BURN_AMOUNT: felt252 = 'Invalid burn amount';
+        pub const CALLER_IS_NOT_TOKEN_MINTER: felt252 = 'Caller is not token minter';
         pub const MINTER_ADDRESS_CANT_BE_THE_ZERO: felt252 = 'Minter address cant be the zero';
         pub const NEW_MINTER_ALREADY_EXISTS: felt252 = 'New minter already exists';
         pub const OLD_MINTER_DOES_NOT_EXIST: felt252 = 'Old minter does not exist';
-        pub const CALLER_IS_NOT_MINTER: felt252 = 'Caller is not minter';
+        pub const CALLER_IS_NOT_A_MINTER: felt252 = 'Caller is not a minter';
     }
 
     #[constructor]
@@ -143,7 +143,7 @@ pub mod TokenizedBond {
             // replace old minter with new minter in all minted tokens
             for element in 0..number_of_tokens_to_replace {
                 let token_id = self.minter_tokens.entry(old_minter).at(element).read();
-                
+
                 self.minter_tokens.entry(old_minter).at(element).write(0);
                 let old_minter_balance = self.erc1155.balance_of(old_minter, token_id);
 
@@ -182,7 +182,7 @@ pub mod TokenizedBond {
             assert(
                 self.tokens.entry(token_id).read().minter == ZERO_ADDRESS(), Errors::TOKEN_ALREADY_EXISTS,
             );
-            assert(self.minters.entry(minter).read() == 1, Errors::CALLER_IS_NOT_MINTER);
+            assert(self.minters.entry(minter).read() == 1, Errors::CALLER_IS_NOT_A_MINTER);
             assert(expiration_date > get_block_timestamp(), Errors::TOKEN_EXPIRATION_DATE_IN_THE_PAST);
             assert(interest_rate > 0, 'Interest rate 0');
             self
@@ -296,7 +296,7 @@ pub mod TokenizedBond {
         fn only_token_minter(self: @ContractState, token_id: u256) {
             assert(
                 self.tokens.entry(token_id).read().minter == get_caller_address(),
-                Errors::TOKEN_MINTER_IS_NOT_MINTER,
+                Errors::CALLER_IS_NOT_TOKEN_MINTER,
             );
         }
 
