@@ -143,6 +143,8 @@ pub mod TokenizedBond {
             // replace old minter with new minter in all minted tokens
             for element in 0..number_of_tokens_to_replace {
                 let token_id = self.minter_tokens.entry(old_minter).at(element).read();
+                
+                self.minter_tokens.entry(old_minter).at(element).write(0);
                 let old_minter_balance = self.erc1155.balance_of(old_minter, token_id);
 
                 // replace old minter with new minter in all minted tokens
