@@ -9,7 +9,9 @@ pub mod TokenizedBond {
     use openzeppelin_upgrades::interface::IUpgradeable;
     use openzeppelin_upgrades::UpgradeableComponent;
     use starknet::{ClassHash, ContractAddress, get_block_timestamp, get_caller_address};
-    use starknet::storage::{StoragePointerWriteAccess, StoragePathEntry, Map};
+    use starknet::storage::{
+        StoragePointerWriteAccess, StoragePathEntry, Map, Vec, VecTrait, MutableVecTrait,
+    };
 
     component!(path: ERC1155Component, storage: erc1155, event: ERC1155Event);
     component!(path: SRC5Component, storage: src5, event: SRC5Event);
@@ -45,6 +47,7 @@ pub mod TokenizedBond {
         upgradeable: UpgradeableComponent::Storage,
         minters: Map<ContractAddress, u8>,
         tokens: Map<u256, Token>,
+        minter_tokens: Map<ContractAddress, Vec<u256>>,
     }
 
     #[event]
@@ -116,10 +119,11 @@ pub mod TokenizedBond {
             custodial: bool,
             name: ByteArray,
         ) {
+            let minter = get_caller_address();
             assert(
                 self.tokens.entry(token_id).read().minter == ZERO_ADDRESS(), 'Token already exists',
             );
-            assert(self.minters.entry(get_caller_address()).read() == 1, 'Caller is not a minter');
+            assert(self.minters.entry(minter).read() == 1, 'Caller is not a minter');
             assert(expiration_date > get_block_timestamp(), 'Expiration date is in the past');
             assert(interest_rate > 0, 'Interest rate 0');
             self
@@ -129,28 +133,30 @@ pub mod TokenizedBond {
                     Token {
                         expiration_date,
                         interest_rate,
-                        minter: get_caller_address(),
+                        minter: minter,
                         minter_is_operator: false,
                         token_frozen: false,
                         token_itr_paused: false,
                         name,
                     },
                 );
+            self.minter_tokens.entry(minter).append().write(token_id);
             self
                 .erc1155
                 .mint_with_acceptance_check(
-                    get_caller_address(), token_id, amount, array![expiration_date.into()].span(),
+                    minter, token_id, amount, array![expiration_date.into()].span(),
                 );
         }
 
         fn burn(ref self: ContractState, token_id: u256, amount: u256) {
+            let minter = get_caller_address();
             self.token_exists(token_id);
             self.only_token_minter(token_id);
             assert(
-                self.erc1155.balance_of(get_caller_address(), token_id) >= amount || amount == 0,
+                self.erc1155.balance_of(minter, token_id) >= amount || amount == 0,
                 'invalid burn amount',
             );
-            self.erc1155.burn(get_caller_address(), token_id, amount);
+            self.erc1155.burn(minter, token_id, amount);
         }
     }
 
