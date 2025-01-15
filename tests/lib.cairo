@@ -1,8 +1,14 @@
 mod utils;
 use tokenized_bond::{TokenizedBond, ITokenizedBondDispatcher, ITokenizedBondDispatcherTrait};
 use openzeppelin_token::erc1155::interface::{IERC1155Dispatcher, IERC1155DispatcherTrait};
-use tokenized_bond::utils::constants::{OWNER, MINTER, ZERO_ADDRESS, INTEREST_RATE, INTEREST_RATE_ZERO, MINT_AMOUNT, TOKEN_NAME, MINT_ID, TIME_IN_THE_FUTURE};
-use snforge_std::{EventSpyAssertionsTrait, spy_events, start_cheat_caller_address, start_cheat_block_timestamp_global, stop_cheat_block_timestamp_global};
+use tokenized_bond::utils::constants::{
+    OWNER, MINTER, ZERO_ADDRESS, INTEREST_RATE, INTEREST_RATE_ZERO, MINT_AMOUNT, TOKEN_NAME,
+    MINT_ID, TIME_IN_THE_FUTURE, CUSTODIAL_FALSE, NOT_MINTER,
+};
+use snforge_std::{
+    EventSpyAssertionsTrait, spy_events, start_cheat_caller_address,
+    start_cheat_block_timestamp_global, stop_cheat_block_timestamp_global,
+};
 use starknet::get_block_timestamp;
 use utils::{setup, setup_receiver};
 
@@ -10,16 +16,14 @@ use utils::{setup, setup_receiver};
 fn test_add_minter() {
     let mut spy = spy_events();
 
-    let mut tokenized_bond = ITokenizedBondDispatcher { contract_address: setup()};
+    let mut tokenized_bond = ITokenizedBondDispatcher { contract_address: setup() };
 
     start_cheat_caller_address(tokenized_bond.contract_address, OWNER());
-    
+
     tokenized_bond.add_minter(MINTER());
 
     let expected_tokenized_bond_event = TokenizedBond::Event::MinterAdded(
-        TokenizedBond::MinterAdded {
-            minter: MINTER(),
-        }
+        TokenizedBond::MinterAdded { minter: MINTER() },
     );
 
     spy.assert_emitted(@array![(tokenized_bond.contract_address, expected_tokenized_bond_event)]);
@@ -28,20 +32,20 @@ fn test_add_minter() {
 #[test]
 #[should_panic(expected: 'Caller is not the owner')]
 fn test_add_minter_not_owner() {
-    let mut tokenized_bond = ITokenizedBondDispatcher { contract_address: setup()};
+    let mut tokenized_bond = ITokenizedBondDispatcher { contract_address: setup() };
 
     start_cheat_caller_address(tokenized_bond.contract_address, MINTER());
-    
+
     tokenized_bond.add_minter(MINTER());
 }
 
 #[test]
 #[should_panic(expected: 'Minter already exists')]
 fn test_add_minter_already_exists() {
-    let mut tokenized_bond = ITokenizedBondDispatcher { contract_address: setup()};
+    let mut tokenized_bond = ITokenizedBondDispatcher { contract_address: setup() };
 
     start_cheat_caller_address(tokenized_bond.contract_address, OWNER());
-    
+
     tokenized_bond.add_minter(MINTER());
     tokenized_bond.add_minter(MINTER());
 }
@@ -49,10 +53,10 @@ fn test_add_minter_already_exists() {
 #[test]
 #[should_panic(expected: 'Minter address cant be the zero')]
 fn test_add_minter_zero_address() {
-    let mut tokenized_bond = ITokenizedBondDispatcher { contract_address: setup()};
+    let mut tokenized_bond = ITokenizedBondDispatcher { contract_address: setup() };
 
     start_cheat_caller_address(tokenized_bond.contract_address, OWNER());
-    
+
     tokenized_bond.add_minter(ZERO_ADDRESS());
 }
 
@@ -60,17 +64,15 @@ fn test_add_minter_zero_address() {
 fn test_remove_minter() {
     let mut spy = spy_events();
 
-    let mut tokenized_bond = ITokenizedBondDispatcher { contract_address: setup()};
+    let mut tokenized_bond = ITokenizedBondDispatcher { contract_address: setup() };
 
     start_cheat_caller_address(tokenized_bond.contract_address, OWNER());
-    
+
     tokenized_bond.add_minter(MINTER());
     tokenized_bond.remove_minter(MINTER());
 
     let expected_tokenized_bond_event = TokenizedBond::Event::MinterRemoved(
-        TokenizedBond::MinterRemoved {
-            minter: MINTER(),
-        }
+        TokenizedBond::MinterRemoved { minter: MINTER() },
     );
 
     spy.assert_emitted(@array![(tokenized_bond.contract_address, expected_tokenized_bond_event)]);
@@ -79,25 +81,33 @@ fn test_remove_minter() {
 #[test]
 #[should_panic(expected: 'Caller is not the owner')]
 fn test_remove_minter_not_owner() {
-    let mut tokenized_bond = ITokenizedBondDispatcher { contract_address: setup()};
+    let mut tokenized_bond = ITokenizedBondDispatcher { contract_address: setup() };
 
     start_cheat_caller_address(tokenized_bond.contract_address, MINTER());
-    
+
     tokenized_bond.remove_minter(MINTER());
 }
 
 #[test]
 fn test_mint_success() {
-    let mut tokenized_bond = ITokenizedBondDispatcher { contract_address: setup()};
+    let mut tokenized_bond = ITokenizedBondDispatcher { contract_address: setup() };
     let receiver = setup_receiver();
-    let erc_1155 = IERC1155Dispatcher { contract_address: tokenized_bond.contract_address};
+    let erc_1155 = IERC1155Dispatcher { contract_address: tokenized_bond.contract_address };
     start_cheat_caller_address(tokenized_bond.contract_address, OWNER());
 
     tokenized_bond.add_minter(receiver);
 
     start_cheat_caller_address(tokenized_bond.contract_address, receiver);
 
-    tokenized_bond.mint(TIME_IN_THE_FUTURE(), INTEREST_RATE(), MINT_ID(), MINT_AMOUNT(), false, TOKEN_NAME());
+    tokenized_bond
+        .mint(
+            TIME_IN_THE_FUTURE(),
+            INTEREST_RATE(),
+            MINT_ID(),
+            MINT_AMOUNT(),
+            CUSTODIAL_FALSE(),
+            TOKEN_NAME(),
+        );
     start_cheat_caller_address(tokenized_bond.contract_address, tokenized_bond.contract_address);
 
     let minter_balance = erc_1155.balance_of(account: receiver, token_id: MINT_ID());
@@ -107,7 +117,7 @@ fn test_mint_success() {
 #[test]
 #[should_panic(expected: 'Token already exists')]
 fn test_token_already_minted() {
-    let mut tokenized_bond = ITokenizedBondDispatcher { contract_address: setup()};
+    let mut tokenized_bond = ITokenizedBondDispatcher { contract_address: setup() };
     let receiver = setup_receiver();
     start_cheat_caller_address(tokenized_bond.contract_address, OWNER());
 
@@ -115,25 +125,49 @@ fn test_token_already_minted() {
 
     start_cheat_caller_address(tokenized_bond.contract_address, receiver);
 
-    tokenized_bond.mint(TIME_IN_THE_FUTURE(), INTEREST_RATE(), MINT_ID(), MINT_AMOUNT(), false, TOKEN_NAME());
-    tokenized_bond.mint(TIME_IN_THE_FUTURE(), INTEREST_RATE(), MINT_ID(), MINT_AMOUNT(), false, TOKEN_NAME());
+    tokenized_bond
+        .mint(
+            TIME_IN_THE_FUTURE(),
+            INTEREST_RATE(),
+            MINT_ID(),
+            MINT_AMOUNT(),
+            CUSTODIAL_FALSE(),
+            TOKEN_NAME(),
+        );
+    tokenized_bond
+        .mint(
+            TIME_IN_THE_FUTURE(),
+            INTEREST_RATE(),
+            MINT_ID(),
+            MINT_AMOUNT(),
+            CUSTODIAL_FALSE(),
+            TOKEN_NAME(),
+        );
 }
 
 #[test]
 #[should_panic(expected: 'Caller is not a minter')]
 fn test_mint_when_caller_is_not_minter() {
-    let mut tokenized_bond = ITokenizedBondDispatcher { contract_address: setup()};
+    let mut tokenized_bond = ITokenizedBondDispatcher { contract_address: setup() };
     start_cheat_caller_address(tokenized_bond.contract_address, OWNER());
 
     start_cheat_caller_address(tokenized_bond.contract_address, MINTER());
 
-    tokenized_bond.mint(TIME_IN_THE_FUTURE(), INTEREST_RATE(), MINT_ID(), MINT_AMOUNT(), false, TOKEN_NAME());
+    tokenized_bond
+        .mint(
+            TIME_IN_THE_FUTURE(),
+            INTEREST_RATE(),
+            MINT_ID(),
+            MINT_AMOUNT(),
+            CUSTODIAL_FALSE(),
+            TOKEN_NAME(),
+        );
 }
 
 #[test]
 #[should_panic(expected: 'Expiration date is in the past')]
 fn test_mint_with_expired_date() {
-    let mut tokenized_bond = ITokenizedBondDispatcher { contract_address: setup()};
+    let mut tokenized_bond = ITokenizedBondDispatcher { contract_address: setup() };
     start_cheat_caller_address(tokenized_bond.contract_address, OWNER());
     let time_in_the_past = get_block_timestamp();
     start_cheat_block_timestamp_global(block_timestamp: 88);
@@ -141,7 +175,15 @@ fn test_mint_with_expired_date() {
 
     start_cheat_caller_address(tokenized_bond.contract_address, MINTER());
 
-    tokenized_bond.mint(time_in_the_past, INTEREST_RATE(), MINT_ID(), MINT_AMOUNT(), false, TOKEN_NAME());
+    tokenized_bond
+        .mint(
+            time_in_the_past,
+            INTEREST_RATE(),
+            MINT_ID(),
+            MINT_AMOUNT(),
+            CUSTODIAL_FALSE(),
+            TOKEN_NAME(),
+        );
 
     stop_cheat_block_timestamp_global()
 }
@@ -149,12 +191,110 @@ fn test_mint_with_expired_date() {
 #[test]
 #[should_panic(expected: 'Interest rate 0')]
 fn test_mint_when_interest_rate_is_zero() {
-    let mut tokenized_bond = ITokenizedBondDispatcher { contract_address: setup()};
+    let mut tokenized_bond = ITokenizedBondDispatcher { contract_address: setup() };
     start_cheat_caller_address(tokenized_bond.contract_address, OWNER());
 
     tokenized_bond.add_minter(MINTER());
 
     start_cheat_caller_address(tokenized_bond.contract_address, MINTER());
 
-    tokenized_bond.mint(TIME_IN_THE_FUTURE(), INTEREST_RATE_ZERO(), MINT_ID(), MINT_AMOUNT(), false, TOKEN_NAME());
+    tokenized_bond
+        .mint(
+            TIME_IN_THE_FUTURE(),
+            INTEREST_RATE_ZERO(),
+            MINT_ID(),
+            MINT_AMOUNT(),
+            CUSTODIAL_FALSE(),
+            TOKEN_NAME(),
+        );
+}
+
+#[test]
+fn test_burn_token() {
+    let mut tokenized_bond = ITokenizedBondDispatcher { contract_address: setup() };
+    let minter = setup_receiver();
+    let erc_1155 = IERC1155Dispatcher { contract_address: tokenized_bond.contract_address };
+    start_cheat_caller_address(tokenized_bond.contract_address, OWNER());
+
+    tokenized_bond.add_minter(minter);
+    start_cheat_caller_address(tokenized_bond.contract_address, minter);
+
+    tokenized_bond
+        .mint(
+            TIME_IN_THE_FUTURE(),
+            INTEREST_RATE(),
+            MINT_ID(),
+            MINT_AMOUNT(),
+            CUSTODIAL_FALSE(),
+            TOKEN_NAME(),
+        );
+    let pre_burn_minter_balance = erc_1155.balance_of(account: minter, token_id: MINT_ID());
+    assert(pre_burn_minter_balance == MINT_AMOUNT(), 'pre burn balance is incorrect');
+    start_cheat_caller_address(tokenized_bond.contract_address, minter);
+
+    tokenized_bond.burn(MINT_ID(), MINT_AMOUNT());
+
+    let post_burn_minter_balance = erc_1155.balance_of(account: minter, token_id: MINT_ID());
+    assert(post_burn_minter_balance == 0, 'post burn balance is incorrect');
+}
+
+#[test]
+#[should_panic(expected: 'Token does not exist')]
+fn test_burn_token_that_does_not_exist() {
+    let mut tokenized_bond = ITokenizedBondDispatcher { contract_address: setup() };
+    start_cheat_caller_address(tokenized_bond.contract_address, OWNER());
+
+    tokenized_bond.add_minter(MINTER());
+    start_cheat_caller_address(tokenized_bond.contract_address, MINTER());
+
+    tokenized_bond.burn(MINT_ID(), MINT_AMOUNT());
+}
+
+#[test]
+#[should_panic(expected: 'Caller is not token minter')]
+fn test_burn_with_invalid_minter() {
+    let mut tokenized_bond = ITokenizedBondDispatcher { contract_address: setup() };
+    let minter = setup_receiver();
+    start_cheat_caller_address(tokenized_bond.contract_address, OWNER());
+
+    tokenized_bond.add_minter(minter);
+    start_cheat_caller_address(tokenized_bond.contract_address, minter);
+    tokenized_bond
+        .mint(
+            TIME_IN_THE_FUTURE(),
+            INTEREST_RATE(),
+            MINT_ID(),
+            MINT_AMOUNT(),
+            CUSTODIAL_FALSE(),
+            TOKEN_NAME(),
+        );
+    start_cheat_caller_address(tokenized_bond.contract_address, NOT_MINTER());
+    tokenized_bond.burn(MINT_ID(), MINT_AMOUNT());
+}
+
+#[test]
+#[should_panic(expected: 'Invalid burn amount')]
+fn test_burn_with_too_high_amount() {
+    let mut tokenized_bond = ITokenizedBondDispatcher { contract_address: setup() };
+    let minter = setup_receiver();
+    let erc_1155 = IERC1155Dispatcher { contract_address: tokenized_bond.contract_address };
+    start_cheat_caller_address(tokenized_bond.contract_address, OWNER());
+
+    tokenized_bond.add_minter(minter);
+    start_cheat_caller_address(tokenized_bond.contract_address, minter);
+
+    tokenized_bond
+        .mint(
+            TIME_IN_THE_FUTURE(),
+            INTEREST_RATE(),
+            MINT_ID(),
+            MINT_AMOUNT(),
+            CUSTODIAL_FALSE(),
+            TOKEN_NAME(),
+        );
+    let pre_burn_minter_balance = erc_1155.balance_of(account: minter, token_id: MINT_ID());
+    assert(pre_burn_minter_balance == MINT_AMOUNT(), 'pre burn balance is incorrect');
+    start_cheat_caller_address(tokenized_bond.contract_address, minter);
+    let too_high_amount = MINT_AMOUNT() + 1;
+    tokenized_bond.burn(MINT_ID(), too_high_amount);
 }
