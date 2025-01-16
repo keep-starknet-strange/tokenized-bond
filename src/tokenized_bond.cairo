@@ -110,6 +110,8 @@ pub mod TokenizedBond {
         pub const NEW_MINTER_ALREADY_EXISTS: felt252 = 'New minter already exists';
         pub const OLD_MINTER_DOES_NOT_EXIST: felt252 = 'Old minter does not exist';
         pub const CALLER_IS_NOT_A_MINTER: felt252 = 'Caller is not a minter';
+        pub const TOKEN_IS_FROZEN: felt252 = 'Token is frozen';
+        pub const TOKEN_IS_NOT_FROZEN: felt252 = 'Token is not frozen';
     }
 
     #[constructor]
@@ -120,6 +122,25 @@ pub mod TokenizedBond {
 
     #[abi(embed_v0)]
     impl TokenizedBond of ITokenizedBond<ContractState> {
+
+        fn freeze_token(ref self: ContractState, token_id: u256) {
+            self.ownable.assert_only_owner();
+            self.token_exists(token_id);
+            let mut token = self.tokens.entry(token_id).read();
+            assert(!token.token_frozen, Errors::TOKEN_IS_FROZEN);
+            token.token_frozen = true;
+            self.tokens.entry(token_id).write(token);
+        }
+
+        fn unfreeze_token(ref self: ContractState, token_id: u256) {
+            self.ownable.assert_only_owner();
+            self.token_exists(token_id);
+            let mut token = self.tokens.entry(token_id).read();
+            assert(token.token_frozen, Errors::TOKEN_IS_NOT_FROZEN);
+            token.token_frozen = false;
+            self.tokens.entry(token_id).write(token);
+        }
+
         fn add_minter(ref self: ContractState, minter: ContractAddress) {
             self.ownable.assert_only_owner();
             assert(minter != ZERO_ADDRESS(), Errors::MINTER_ADDRESS_CANT_BE_THE_ZERO);

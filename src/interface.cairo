@@ -15,4 +15,6 @@ pub trait ITokenizedBond<TState> {
         name: ByteArray,
     );
     fn burn(ref self: TState, token_id: u256, amount: u256);
+    fn freeze_token(ref self: TState, token_id: u256);
+    fn unfreeze_token(ref self: TState, token_id: u256);
 }
