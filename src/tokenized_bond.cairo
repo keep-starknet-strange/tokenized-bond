@@ -9,9 +9,7 @@ pub mod TokenizedBond {
     use openzeppelin_upgrades::interface::IUpgradeable;
     use openzeppelin_upgrades::UpgradeableComponent;
     use starknet::{ClassHash, ContractAddress, get_block_timestamp, get_caller_address};
-    use starknet::storage::{
-        StoragePointerWriteAccess, StoragePathEntry, Map, Vec, VecTrait, MutableVecTrait,
-    };
+    use starknet::storage::{StoragePointerWriteAccess, StoragePathEntry, Map, Vec, MutableVecTrait};
 
     component!(path: ERC1155Component, storage: erc1155, event: ERC1155Event);
     component!(path: SRC5Component, storage: src5, event: SRC5Event);
@@ -67,6 +65,7 @@ pub mod TokenizedBond {
         MinterRemoved: MinterRemoved,
         MinterReplaced: MinterReplaced,
         TokenInterTransferAllowed: TokenInterTransferAllowed,
+        TokenItrAfterExpiryAllowed: TokenItrAfterExpiryAllowed,
     }
 
     #[derive(Drop, starknet::Event)]
@@ -88,6 +87,12 @@ pub mod TokenizedBond {
 
     #[derive(Drop, starknet::Event)]
     pub struct TokenInterTransferAllowed {
+        pub token_id: u256,
+        pub is_transferable: bool,
+    }
+
+    #[derive(Drop, starknet::Event)]
+    pub struct TokenItrAfterExpiryAllowed {
         pub token_id: u256,
         pub is_transferable: bool,
     }
@@ -172,11 +177,11 @@ pub mod TokenizedBond {
                 Errors::ITR_AFTER_EXPIRY_IS_NOT_PAUSED,
             );
             let mut token = self.tokens.entry(token_id).read();
-            token.token_itr_paused = false;
+            token.token_itr_expiry_paused = false;
             self.tokens.entry(token_id).write(token);
             self
                 .emit(
-                    TokenInterTransferAllowed {
+                    TokenItrAfterExpiryAllowed {
                         token_id,
                         is_transferable: !self.tokens.entry(token_id).read().token_itr_paused,
                     },
@@ -194,9 +199,13 @@ pub mod TokenizedBond {
             self.tokens.entry(token_id).write(token);
             self
                 .emit(
-                    TokenInterTransferAllowed {
+                    TokenItrAfterExpiryAllowed {
                         token_id,
-                        is_transferable: !self.tokens.entry(token_id).read().token_itr_paused,
+                        is_transferable: !self
+                            .tokens
+                            .entry(token_id)
+                            .read()
+                            .token_itr_expiry_paused,
                     },
                 );
         }
@@ -401,6 +410,19 @@ pub mod TokenizedBond {
             }
             if (self.tokens.entry(token_id).read().minter == sender
                 || self.tokens.entry(token_id).read().minter == receiver) {
+                return true;
+            }
+            return false;
+        }
+
+        fn is_inter_transfer_after_expiry(
+            self: @ContractState, token_id: u256, receiever: ContractAddress,
+        ) -> bool {
+            if !self.tokens.entry(token_id).read().token_itr_expiry_paused {
+                return true;
+            }
+            if self.tokens.entry(token_id).read().expiration_date > get_block_timestamp()
+                || self.tokens.entry(token_id).read().minter == receiever {
                 return true;
             }
             return false;
