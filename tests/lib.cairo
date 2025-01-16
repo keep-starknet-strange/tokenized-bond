@@ -297,7 +297,7 @@ fn test_burn_with_too_high_amount() {
 }
 
 #[test]
-fn test_replace_minter() {
+fn test_replace_minter_success() {
     let mut spy = spy_events();
 
     let mut tokenized_bond = ITokenizedBondDispatcher { contract_address: setup() };
