@@ -8,6 +8,10 @@ pub fn MINTER() -> ContractAddress {
     contract_address_const::<'MINTER'>()
 }
 
+pub fn NEW_MINTER() -> ContractAddress {
+    contract_address_const::<'NEW_MINTER'>()
+}
+
 pub fn NOT_MINTER() -> ContractAddress {
     contract_address_const::<'NOT_MINTER'>()
 }
