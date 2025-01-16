@@ -66,6 +66,7 @@ pub mod TokenizedBond {
         MinterAdded: MinterAdded,
         MinterRemoved: MinterRemoved,
         MinterReplaced: MinterReplaced,
+        TokenInterTransferAllowed: TokenInterTransferAllowed,
     }
 
     #[derive(Drop, starknet::Event)]
@@ -85,6 +86,12 @@ pub mod TokenizedBond {
         pub new_minter: ContractAddress,
     }
 
+    #[derive(Drop, starknet::Event)]
+    pub struct TokenInterTransferAllowed {
+        pub token_id: u256,
+        pub is_transferable: bool,
+    }
+
     #[derive(Drop, Serde, starknet::Store)]
     pub struct Token {
         pub expiration_date: u64,
@@ -93,6 +100,7 @@ pub mod TokenizedBond {
         pub minter_is_operator: bool,
         pub token_frozen: bool,
         pub token_itr_paused: bool,
+        pub token_itr_expiry_paused: bool,
         pub name: ByteArray,
     }
 
@@ -110,6 +118,10 @@ pub mod TokenizedBond {
         pub const NEW_MINTER_ALREADY_EXISTS: felt252 = 'New minter already exists';
         pub const OLD_MINTER_DOES_NOT_EXIST: felt252 = 'Old minter does not exist';
         pub const CALLER_IS_NOT_A_MINTER: felt252 = 'Caller is not a minter';
+        pub const TOKEN_IS_NOT_PAUSED: felt252 = 'Token transfer is not paused';
+        pub const TOKEN_IS_PAUSED: felt252 = 'Token transfer is paused';
+        pub const ITR_AFTER_EXPIRY_IS_NOT_PAUSED: felt252 = 'Inter after expiry not paused';
+        pub const ITR_AFTER_EXPIRY_IS_PAUSED: felt252 = 'Inter after expiry is paused';
     }
 
     #[constructor]
@@ -120,6 +132,75 @@ pub mod TokenizedBond {
 
     #[abi(embed_v0)]
     impl TokenizedBond of ITokenizedBond<ContractState> {
+        fn resume_inter_transfer(ref self: ContractState, token_id: u256) {
+            self.ownable.assert_only_owner();
+            assert(self.tokens.entry(token_id).read().token_itr_paused, Errors::TOKEN_IS_PAUSED);
+            let mut token = self.tokens.entry(token_id).read();
+            token.token_itr_paused = false;
+            self.tokens.entry(token_id).write(token);
+            // this logic in the solidity seems incorrect. I could be wrong
+            self
+                .emit(
+                    TokenInterTransferAllowed {
+                        token_id,
+                        is_transferable: !self.tokens.entry(token_id).read().token_itr_paused,
+                    },
+                );
+        }
+
+        fn pause_inter_transfer(ref self: ContractState, token_id: u256) {
+            self.ownable.assert_only_owner();
+            assert(
+                !self.tokens.entry(token_id).read().token_itr_paused, Errors::TOKEN_IS_NOT_PAUSED,
+            );
+            let mut token = self.tokens.entry(token_id).read();
+            token.token_itr_paused = true;
+            self.tokens.entry(token_id).write(token);
+            self
+                .emit(
+                    TokenInterTransferAllowed {
+                        token_id,
+                        is_transferable: !self.tokens.entry(token_id).read().token_itr_paused,
+                    },
+                );
+        }
+
+        fn resume_itr_after_expiry(ref self: ContractState, token_id: u256) {
+            self.ownable.assert_only_owner();
+            assert(
+                self.tokens.entry(token_id).read().token_itr_expiry_paused,
+                Errors::ITR_AFTER_EXPIRY_IS_NOT_PAUSED,
+            );
+            let mut token = self.tokens.entry(token_id).read();
+            token.token_itr_paused = false;
+            self.tokens.entry(token_id).write(token);
+            self
+                .emit(
+                    TokenInterTransferAllowed {
+                        token_id,
+                        is_transferable: !self.tokens.entry(token_id).read().token_itr_paused,
+                    },
+                );
+        }
+
+        fn pause_itr_after_expiry(ref self: ContractState, token_id: u256) {
+            self.ownable.assert_only_owner();
+            assert(
+                !self.tokens.entry(token_id).read().token_itr_expiry_paused,
+                Errors::ITR_AFTER_EXPIRY_IS_PAUSED,
+            );
+            let mut token = self.tokens.entry(token_id).read();
+            token.token_itr_expiry_paused = true;
+            self.tokens.entry(token_id).write(token);
+            self
+                .emit(
+                    TokenInterTransferAllowed {
+                        token_id,
+                        is_transferable: !self.tokens.entry(token_id).read().token_itr_paused,
+                    },
+                );
+        }
+
         fn add_minter(ref self: ContractState, minter: ContractAddress) {
             self.ownable.assert_only_owner();
             assert(minter != ZERO_ADDRESS(), Errors::MINTER_ADDRESS_CANT_BE_THE_ZERO);
@@ -201,6 +282,7 @@ pub mod TokenizedBond {
                         minter_is_operator: false,
                         token_frozen: false,
                         token_itr_paused: false,
+                        token_itr_expiry_paused: false,
                         name,
                     },
                 );
@@ -306,6 +388,22 @@ pub mod TokenizedBond {
                 self.tokens.entry(token_id).read().minter != ZERO_ADDRESS(),
                 Errors::TOKEN_DOES_NOT_EXIST,
             );
+        }
+
+        fn inter_transfer_allowed(
+            self: @ContractState,
+            token_id: u256,
+            sender: ContractAddress,
+            receiver: ContractAddress,
+        ) -> bool {
+            if !self.tokens.entry(token_id).read().token_itr_paused {
+                return true;
+            }
+            if (self.tokens.entry(token_id).read().minter == sender
+                || self.tokens.entry(token_id).read().minter == receiver) {
+                return true;
+            }
+            return false;
         }
     }
 }
