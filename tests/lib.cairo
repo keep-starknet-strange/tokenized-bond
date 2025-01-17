@@ -452,6 +452,7 @@ fn test_pause_itr_after_expiry() {
     );
 
     spy.assert_emitted(@array![(tokenized_bond.contract_address, expected_tokenized_bond_event)]);
+}
 
 fn test_freeze_token_success() {
     let mut tokenized_bond = ITokenizedBondDispatcher { contract_address: setup() };

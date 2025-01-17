@@ -210,6 +210,7 @@ pub mod TokenizedBond {
                             .token_itr_expiry_paused,
                     },
                 );
+        }
 
         fn freeze_token(ref self: ContractState, token_id: u256) {
             self.ownable.assert_only_owner();
