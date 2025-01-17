@@ -114,7 +114,7 @@ Built with OpenZeppelin components:
 
 # Deployment on Starknet Sepolia
 
-1. Set environment variables in .env file
+1. Set environment variables in .env.example file
 
 2. Run the bash script to deploy the contract
 ```
