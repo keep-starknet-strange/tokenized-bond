@@ -88,38 +88,13 @@ Built with OpenZeppelin components:
 ### Setup
 
 #### Setting up Scarb
+ - [Install Scarb](https://docs.swmansion.com/scarb/download)
 
-1. **Install asdf**
-    ```
-    brew install asdf
-    ```
-    Link: https://asdf-vm.com/guide/getting-started.html
+ - [Install Starknet Foundry](https://github.com/foundry-rs/starknet-foundry)
 
+ - [Install starkli](https://github.com/xJonathanLEI/starkli)
 
-2. **Verify that asdf is installed**
-    ```
-    asdf --version
-    ```
-
-3. **Install the asdf Scarb plugin**
-    ```
-    asdf plugin add scarb
-    ```
-
-4. **Install the latest version of Scarb**
-    ```
-    asdf install scarb 2.9.2
-    ```
-
-5. **Set a global version for Scarb (need for using scarb init)**
-    ```
-    asdf global scarb 2.9.2
-    ```
-
-6. **Restart the terminal and verify that Scarb is installed correctly**
-    ```
-    scarb --version
-    ```
+ Using `asdf` `scarb 2.9.2` and `starknet-foundry 0.33.0`  will be set for you
 
 ## Clone this repo
 1. **Clone the repo**
@@ -141,6 +116,8 @@ Built with OpenZeppelin components:
 
 1. Set environment variables in .env file
 
-2. Use Starkli to deploy the contract
+2. [Install starkli](https://github.com/xJonathanLEI/starkli)
 
 3. In scripts folder, run the bash script to deploy the contract
+```
+scripts/
