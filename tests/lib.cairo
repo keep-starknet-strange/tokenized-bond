@@ -10,7 +10,7 @@ use snforge_std::{
     start_cheat_block_timestamp_global, stop_cheat_block_timestamp_global,
 };
 use starknet::get_block_timestamp;
-use utils::{setup, setup_receiver};
+use utils::{setup, setup_receiver, setup_contract_with_minter};
 
 #[test]
 fn test_add_minter() {
@@ -389,6 +389,70 @@ fn test_replace_minter_when_new_minter_already_exists() {
 }
 
 #[test]
+fn test_resume_inter_transfer_success() {
+    let mut spy = spy_events();
+    let mut tokenized_bond = setup_contract_with_minter();
+
+    start_cheat_caller_address(tokenized_bond.contract_address, OWNER());
+
+    tokenized_bond.pause_inter_transfer(MINT_ID());
+    tokenized_bond.resume_inter_transfer(MINT_ID());
+
+    let expected_tokenized_bond_event = TokenizedBond::Event::TokenInterTransferAllowed(
+        TokenizedBond::TokenInterTransferAllowed { token_id: MINT_ID(), is_transferable: true },
+    );
+
+    spy.assert_emitted(@array![(tokenized_bond.contract_address, expected_tokenized_bond_event)]);
+}
+
+#[test]
+fn test_pause_inter_transfer_success() {
+    let mut spy = spy_events();
+    let mut tokenized_bond = setup_contract_with_minter();
+
+    start_cheat_caller_address(tokenized_bond.contract_address, OWNER());
+
+    tokenized_bond.pause_inter_transfer(MINT_ID());
+
+    let expected_tokenized_bond_event = TokenizedBond::Event::TokenInterTransferAllowed(
+        TokenizedBond::TokenInterTransferAllowed { token_id: MINT_ID(), is_transferable: false },
+    );
+
+    spy.assert_emitted(@array![(tokenized_bond.contract_address, expected_tokenized_bond_event)]);
+}
+
+#[test]
+fn test_resume_itr_after_expiry() {
+    let mut spy = spy_events();
+    let mut tokenized_bond = setup_contract_with_minter();
+
+    start_cheat_caller_address(tokenized_bond.contract_address, OWNER());
+
+    tokenized_bond.pause_itr_after_expiry(MINT_ID());
+    tokenized_bond.resume_itr_after_expiry(MINT_ID());
+
+    let expected_tokenized_bond_event = TokenizedBond::Event::TokenItrAfterExpiryAllowed(
+        TokenizedBond::TokenItrAfterExpiryAllowed { token_id: MINT_ID(), is_transferable: true },
+    );
+
+    spy.assert_emitted(@array![(tokenized_bond.contract_address, expected_tokenized_bond_event)]);
+}
+
+#[test]
+fn test_pause_itr_after_expiry() {
+    let mut spy = spy_events();
+    let mut tokenized_bond = setup_contract_with_minter();
+
+    start_cheat_caller_address(tokenized_bond.contract_address, OWNER());
+
+    tokenized_bond.pause_itr_after_expiry(MINT_ID());
+
+    let expected_tokenized_bond_event = TokenizedBond::Event::TokenItrAfterExpiryAllowed(
+        TokenizedBond::TokenItrAfterExpiryAllowed { token_id: MINT_ID(), is_transferable: false },
+    );
+
+    spy.assert_emitted(@array![(tokenized_bond.contract_address, expected_tokenized_bond_event)]);
+
 fn test_freeze_token_success() {
     let mut tokenized_bond = ITokenizedBondDispatcher { contract_address: setup() };
     let minter = setup_receiver();
@@ -508,4 +572,5 @@ fn test_unfreeze_not_frozen_token() {
 
     start_cheat_caller_address(tokenized_bond.contract_address, OWNER());
     tokenized_bond.unfreeze_token(MINT_ID());
+
 }
