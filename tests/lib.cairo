@@ -452,4 +452,125 @@ fn test_pause_itr_after_expiry() {
     );
 
     spy.assert_emitted(@array![(tokenized_bond.contract_address, expected_tokenized_bond_event)]);
+
+fn test_freeze_token_success() {
+    let mut tokenized_bond = ITokenizedBondDispatcher { contract_address: setup() };
+    let minter = setup_receiver();
+    
+    start_cheat_caller_address(tokenized_bond.contract_address, OWNER());
+    tokenized_bond.add_minter(minter);
+    
+    start_cheat_caller_address(tokenized_bond.contract_address, minter);
+    tokenized_bond.mint(
+        TIME_IN_THE_FUTURE(),
+        INTEREST_RATE(),
+        MINT_ID(),
+        MINT_AMOUNT(),
+        CUSTODIAL_FALSE(),
+        TOKEN_NAME(),
+    );
+
+    start_cheat_caller_address(tokenized_bond.contract_address, OWNER());
+    tokenized_bond.freeze_token(MINT_ID());
+}
+
+#[test]
+fn test_unfreeze_token_success() {
+    let mut tokenized_bond = ITokenizedBondDispatcher { contract_address: setup() };
+    let minter = setup_receiver();
+    
+    start_cheat_caller_address(tokenized_bond.contract_address, OWNER());
+    tokenized_bond.add_minter(minter);
+    
+    start_cheat_caller_address(tokenized_bond.contract_address, minter);
+    tokenized_bond.mint(
+        TIME_IN_THE_FUTURE(),
+        INTEREST_RATE(),
+        MINT_ID(),
+        MINT_AMOUNT(),
+        CUSTODIAL_FALSE(),
+        TOKEN_NAME(),
+    );
+
+    start_cheat_caller_address(tokenized_bond.contract_address, OWNER());
+    tokenized_bond.freeze_token(MINT_ID());
+}
+
+#[test]
+#[should_panic(expected: 'Caller is not the owner')]
+fn test_freeze_token_not_owner() {
+    let mut tokenized_bond = ITokenizedBondDispatcher { contract_address: setup() };
+    let minter = setup_receiver();
+    
+    start_cheat_caller_address(tokenized_bond.contract_address, OWNER());
+    tokenized_bond.add_minter(minter);
+    
+    start_cheat_caller_address(tokenized_bond.contract_address, minter);
+    tokenized_bond.mint(
+        TIME_IN_THE_FUTURE(),
+        INTEREST_RATE(),
+        MINT_ID(),
+        MINT_AMOUNT(),
+        CUSTODIAL_FALSE(),
+        TOKEN_NAME(),
+    );
+
+    tokenized_bond.freeze_token(MINT_ID());
+}
+
+#[test]
+#[should_panic(expected: 'Token does not exist')]
+fn test_freeze_nonexistent_token() {
+    let mut tokenized_bond = ITokenizedBondDispatcher { contract_address: setup() };
+    
+    start_cheat_caller_address(tokenized_bond.contract_address, OWNER());
+    tokenized_bond.freeze_token(MINT_ID());
+}
+
+#[test]
+#[should_panic(expected: 'Token is frozen')]
+fn test_freeze_already_frozen_token() {
+    let mut tokenized_bond = ITokenizedBondDispatcher { contract_address: setup() };
+    let minter = setup_receiver();
+
+    start_cheat_caller_address(tokenized_bond.contract_address, OWNER());
+    tokenized_bond.add_minter(minter);
+    
+    start_cheat_caller_address(tokenized_bond.contract_address, minter);
+    tokenized_bond.mint(
+        TIME_IN_THE_FUTURE(),
+        INTEREST_RATE(),
+        MINT_ID(),
+        MINT_AMOUNT(),
+        CUSTODIAL_FALSE(),
+        TOKEN_NAME(),
+    );
+
+    start_cheat_caller_address(tokenized_bond.contract_address, OWNER());
+    tokenized_bond.freeze_token(MINT_ID());
+    tokenized_bond.freeze_token(MINT_ID());
+}
+
+#[test]
+#[should_panic(expected: 'Token is not frozen')]
+fn test_unfreeze_not_frozen_token() {
+    let mut tokenized_bond = ITokenizedBondDispatcher { contract_address: setup() };
+    let minter = setup_receiver();
+    
+    start_cheat_caller_address(tokenized_bond.contract_address, OWNER());
+    tokenized_bond.add_minter(minter);
+    
+    start_cheat_caller_address(tokenized_bond.contract_address, minter);
+    tokenized_bond.mint(
+        TIME_IN_THE_FUTURE(),
+        INTEREST_RATE(),
+        MINT_ID(),
+        MINT_AMOUNT(),
+        CUSTODIAL_FALSE(),
+        TOKEN_NAME(),
+    );
+
+    start_cheat_caller_address(tokenized_bond.contract_address, OWNER());
+    tokenized_bond.unfreeze_token(MINT_ID());
+
 }

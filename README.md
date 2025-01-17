@@ -137,7 +137,7 @@ Built with OpenZeppelin components:
     ```
 
 
-# Deployment on Starknet Sepolia (need zack help)
+# Deployment on Starknet Sepolia
 
 1. Set environment variables in .env file
 

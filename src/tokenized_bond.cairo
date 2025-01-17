@@ -127,6 +127,8 @@ pub mod TokenizedBond {
         pub const TOKEN_IS_PAUSED: felt252 = 'Token transfer is paused';
         pub const ITR_AFTER_EXPIRY_IS_NOT_PAUSED: felt252 = 'Inter after expiry not paused';
         pub const ITR_AFTER_EXPIRY_IS_PAUSED: felt252 = 'Inter after expiry is paused';
+        pub const TOKEN_IS_FROZEN: felt252 = 'Token is frozen';
+        pub const TOKEN_IS_NOT_FROZEN: felt252 = 'Token is not frozen';
     }
 
     #[constructor]
@@ -208,6 +210,24 @@ pub mod TokenizedBond {
                             .token_itr_expiry_paused,
                     },
                 );
+
+        fn freeze_token(ref self: ContractState, token_id: u256) {
+            self.ownable.assert_only_owner();
+            self.token_exists(token_id);
+            let mut token = self.tokens.entry(token_id).read();
+            assert(!token.token_frozen, Errors::TOKEN_IS_FROZEN);
+            token.token_frozen = true;
+            self.tokens.entry(token_id).write(token);
+        }
+
+        fn unfreeze_token(ref self: ContractState, token_id: u256) {
+            self.ownable.assert_only_owner();
+            self.token_exists(token_id);
+            let mut token = self.tokens.entry(token_id).read();
+            assert(token.token_frozen, Errors::TOKEN_IS_NOT_FROZEN);
+            token.token_frozen = false;
+            self.tokens.entry(token_id).write(token);
+
         }
 
         fn add_minter(ref self: ContractState, minter: ContractAddress) {
