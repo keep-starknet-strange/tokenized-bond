@@ -5,10 +5,9 @@ set -euo pipefail
 SCRIPT_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" >/dev/null 2>&1 && pwd )"
 echo $SCRIPT_DIR
 PROJECT_ROOT=$SCRIPT_DIR/..
-ONCHAIN_DIR=$PROJECT_ROOT/contracts
 
 # Ensure tmp directory exists
-mkdir -p $ONCHAIN_DIR/target/tmp
+mkdir -p $PROJECT_ROOT/target/tmp
 
 # Check for required commands
 command -v starkli >/dev/null 2>&1 || { echo >&2 "starkli not found. Aborting."; exit 1; }
@@ -20,8 +19,8 @@ source $PROJECT_ROOT/.env
 : "${ACCOUNT_PRIVATE_KEY:=ACCOUNT_PRIVATE_KEY is not set}"
 : "${ACCOUNT_ADDRESS:?ACCOUNT_ADDRESS is not set}"
 : "${URI:?URI is not set}"
-TOKENIZED_BOND_SIERRA_FILE=$ONCHAIN_DIR/target/dev/tokenized_bond_TokenizedBond.contract_class.json
-ACCOUNT_FILE=$ONCHAIN_DIR/target/tmp/starknet_accounts.json
+TOKENIZED_BOND_SIERRA_FILE=$PROJECT_ROOT/target/dev/tokenized_bond_TokenizedBond.contract_class.json
+ACCOUNT_FILE=$PROJECT_ROOT/target/tmp/starknet_accounts.json
 
 starkli account fetch $ACCOUNT_ADDRESS \
       --rpc $RPC_URL \
@@ -36,11 +35,11 @@ echo "starkli account fetch $ACCOUNT_ADDRESS \
 
 # Build the contract
 echo "Building the contract..."
-cd $ONCHAIN_DIR && scarb build
+cd $PROJECT_ROOT && scarb build
 
 # Declaring the contract
 echo "Declaring the contract..."
-
+echo "$ACCOUNT_FILE"
 # Fetch account data and save it to a file
 TOKENIZED_BOND_DECLARE_OUTPUT=$(starkli declare --private-key $ACCOUNT_PRIVATE_KEY --watch $TOKENIZED_BOND_SIERRA_FILE --rpc $RPC_URL --account $ACCOUNT_FILE)
 echo "starkli declare --private-key $ACCOUNT_PRIVATE_KEY --watch $TOKENIZED_BOND_SIERRA_FILE --rpc $RPC_URL --account $ACCOUNT_FILE"
@@ -51,7 +50,7 @@ echo "Contract class hash: $TOKENIZED_BOND_CONTRACT_CLASSHASH"
 echo "Deploying the contract..."
 
 # Deploy the contract
-CALLDATA=$(echo -n $URI)
+CALLDATA=$(echo -n $OWNER_ADDRESS $URI)
 
 # VVVVV maybe use this VVVV
 # CALLDATA=$(echo -n $URI | xxd -r -p | base64)

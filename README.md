@@ -116,8 +116,7 @@ Built with OpenZeppelin components:
 
 1. Set environment variables in .env file
 
-2. [Install starkli](https://github.com/xJonathanLEI/starkli)
-
-3. In scripts folder, run the bash script to deploy the contract
+2. Run the bash script to deploy the contract
 ```
-scripts/
+scripts/sepolia_deploy.sh
+```
