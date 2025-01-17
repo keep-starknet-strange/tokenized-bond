@@ -228,7 +228,6 @@ pub mod TokenizedBond {
             assert(token.token_frozen, Errors::TOKEN_IS_NOT_FROZEN);
             token.token_frozen = false;
             self.tokens.entry(token_id).write(token);
-
         }
 
         fn add_minter(ref self: ContractState, minter: ContractAddress) {
