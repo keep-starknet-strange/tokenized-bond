@@ -210,6 +210,7 @@ pub mod TokenizedBond {
                             .token_itr_expiry_paused,
                     },
                 );
+        }
 
         fn freeze_token(ref self: ContractState, token_id: u256) {
             self.ownable.assert_only_owner();
@@ -227,7 +228,6 @@ pub mod TokenizedBond {
             assert(token.token_frozen, Errors::TOKEN_IS_NOT_FROZEN);
             token.token_frozen = false;
             self.tokens.entry(token_id).write(token);
-
         }
 
         fn add_minter(ref self: ContractState, minter: ContractAddress) {
