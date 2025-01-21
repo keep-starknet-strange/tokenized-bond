@@ -128,5 +128,5 @@ scripts/sepolia_deploy.sh
 ```
 
 ```
- scripts/sepolia_mint_coin.sh
+ scripts/sepolia_mint.sh
  ```

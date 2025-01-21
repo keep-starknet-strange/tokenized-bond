@@ -31,8 +31,8 @@ echo "starkli account fetch $ACCOUNT_ADDRESS \
       --network sepolia --force \
       --output $ACCOUNT_FILE \
 "
-EXPIRATION_DATE=0x$(date -v +1m +"%s") # core::integer::u64
-INTEREST_RATE=0x5 # core::integer::u32 (example: 5.00% interest rate)
+EXPIRATION_DATE=$(date -v +1m +"%s") # core::integer::u64
+INTEREST_RATE=5 # core::integer::u32 (example: 5.00% interest rate)
 TOKEN_ID=${1: "0x2b 0x00"} # core::integer::u256
 AMOUNT="0x57d27e23acbdcfe68000000000000000 0x026e4d30eccc3215dd8f31" # core::integer::u256
 CUSTODIAL=0x1 # core::bool
