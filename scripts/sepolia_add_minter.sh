@@ -18,7 +18,7 @@ source $PROJECT_ROOT/.env
 : "${RPC_URL:=https://starknet-sepolia.public.blastapi.io/rpc/v0_7}"
 : "${ACCOUNT_PRIVATE_KEY:=ACCOUNT_PRIVATE_KEY is not set}"
 : "${ACCOUNT_ADDRESS:?ACCOUNT_ADDRESS is not set}"
-: "${URI:?URI is not set}"
+: "${MINTER_ADDRESS:?MINTER_ADDRESS is not set}"
 TOKENIZED_BOND_SIERRA_FILE=$PROJECT_ROOT/target/dev/tokenized_bond_TokenizedBond.contract_class.json
 ACCOUNT_FILE=$PROJECT_ROOT/target/tmp/starknet_accounts.json
 

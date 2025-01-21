@@ -120,3 +120,13 @@ Built with OpenZeppelin components:
 ```
 scripts/sepolia_deploy.sh
 ```
+
+# Call Functions on Deployed Contract
+
+```
+ scripts/sepolia_add_minter.sh  
+```
+
+```
+ scripts/sepolia_mint_coin.sh
+ ```
