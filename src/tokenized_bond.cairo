@@ -142,6 +142,8 @@ pub mod TokenizedBond {
         pub const ITR_AFTER_EXPIRY_IS_PAUSED: felt252 = 'Inter after expiry is paused';
         pub const TOKEN_IS_FROZEN: felt252 = 'Token is frozen';
         pub const TOKEN_IS_NOT_FROZEN: felt252 = 'Token is not frozen';
+        pub const FROM_IS_RECIEVER: felt252 = 'From is receiver';
+        pub const INSUFFICIENT_BALANCE: felt252 = 'Insufficient balance';
     }
 
     #[constructor]
@@ -338,7 +340,7 @@ pub mod TokenizedBond {
             self.only_token_minter(token_id);
             assert(
                 self.erc1155.balance_of(minter, token_id) >= amount || amount == 0,
-                Errors::TOKEN_INVALID_BURN_AMOUNT,
+                ::TOKEN_INVALID_BURN_AMOUNT,
             );
             self.erc1155.burn(minter, token_id, amount);
         }
@@ -353,6 +355,10 @@ pub mod TokenizedBond {
                     let token_id= transfer_destinations.at(destination).token_id;
                     let amount = transfer_destinations.at(destination).amount;
                     let receiver = transfer_destinations.at(destination).receiver;
+                    // self.inter_transfer_allowed(token_id, from, receiver);
+                    // self.is_inter_transfer_after_expiry(token_id, receiver);
+                    assert(from != receiver, Errors::FROM_IS_RECIEVER);
+                    assert(self.erc1155.balance_of(*from, *token_id) >= *amount, Errors::INSUFFICIENT_BALANCE);
                     self.erc1155.safe_transfer_from(*from, *receiver, *token_id, *amount, array![].span());
                 }
             }
