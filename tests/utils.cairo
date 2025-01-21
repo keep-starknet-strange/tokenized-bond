@@ -1,12 +1,10 @@
-use tokenized_bond::utils::constants::{OWNER, TOKEN_URI};
-use snforge_std::{declare, ContractClassTrait, DeclareResultTrait};
+use tokenized_bond::utils::constants::{
+    OWNER, TOKEN_URI, TIME_IN_THE_FUTURE, INTEREST_RATE, MINT_ID, MINT_AMOUNT, CUSTODIAL_FALSE,
+    TOKEN_NAME,
+};
+use tokenized_bond::{ITokenizedBondDispatcher, ITokenizedBondDispatcherTrait};
+use snforge_std::{declare, ContractClassTrait, DeclareResultTrait, start_cheat_caller_address};
 use starknet::{ContractAddress};
-
-// type ComponentState = ERC1155Component::ComponentState<ERC1155Mock::ContractState>;
-
-// fn COMPONENT_STATE() -> ComponentState {
-//     ERC1155Component::component_state_for_testing()
-// }
 
 pub trait SerializedAppend<T> {
     fn append_serde(ref self: Array<felt252>, value: T);
@@ -36,4 +34,24 @@ pub fn setup_receiver() -> ContractAddress {
     let mut calldata: Array<felt252> = array![];
 
     declare_deploy("MockERC1155Receiver", calldata)
+}
+
+pub fn setup_contract_with_minter() -> ITokenizedBondDispatcher {
+    let mut tokenized_bond = ITokenizedBondDispatcher { contract_address: setup() };
+    let minter = setup_receiver();
+
+    start_cheat_caller_address(tokenized_bond.contract_address, OWNER());
+    tokenized_bond.add_minter(minter);
+
+    start_cheat_caller_address(tokenized_bond.contract_address, minter);
+    tokenized_bond
+        .mint(
+            TIME_IN_THE_FUTURE(),
+            INTEREST_RATE(),
+            MINT_ID(),
+            MINT_AMOUNT(),
+            CUSTODIAL_FALSE(),
+            TOKEN_NAME(),
+        );
+    tokenized_bond
 }

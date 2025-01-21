@@ -83,7 +83,22 @@ Built with OpenZeppelin components:
 - `remove_minter(address minter)`: Deregister minter
 - `replace_minter(address old_minter, address new_minter)`: Update minter
 
-## Development
+# Technical Limitations
+**Storage Vector Clearing**
+The contract uses a storage mapping of vectors (`Map<ContractAddress, Vec<u256>>`) to track minter tokens:
+
+#### Important Note:
+In Cairo, there is currently no way to completely clear or remove a Vec within a Map in storage. This affects the `replace_minter` function in the following ways:
+  1. When a minter is replaced, their old token vector remains in storage
+  2. This is not a security concern because:
+      - The old minter's status is set to 0 (`self.minters.entry(old_minter).write(0)`)
+      - All access to minter functions requires the minter status to be 1
+      - The tokens themselves are properly transferred to the new minter
+
+#### Storage Optimization
+While the old vectors remain in storage, this doesn't affect the contract's functionality. However, it does mean that over time, "orphaned" vectors might be in storage. This is an accepted limitation of the current Cairo storage model.
+
+# Development
 
 ### Setup
 
@@ -136,11 +151,16 @@ Built with OpenZeppelin components:
     scarb test
     ```
 
-
-# Deployment on Starknet Sepolia (need zack help)
+# Deployment on Starknet Sepolia
 
 1. Set environment variables in .env file
 
 2. Use Starkli to deploy the contract
 
 3. In scripts folder, run the bash script to deploy the contract
+
+# Documentation
+For more detailed documentation, please visit our [Documentation](https://docs.google.com/document/d/1SaICy1WhUf26X_lZkoL3pf7rd2_N6dJJqob6VDhsDDk/edit?tab=t.0#heading=h.77kv0h6zwazv).
+
+# Repository
+The source code is available on [GitHub](https://github.com/keep-starknet-strange/tokenized-bond).
