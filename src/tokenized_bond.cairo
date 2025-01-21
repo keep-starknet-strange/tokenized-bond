@@ -46,6 +46,7 @@ pub mod TokenizedBond {
         minters: Map<ContractAddress, u8>,
         tokens: Map<u256, Token>,
         minter_tokens: Map<ContractAddress, Vec<u256>>,
+        minter_is_operator: Map<u256, bool>,
     }
 
     #[event]
@@ -66,6 +67,7 @@ pub mod TokenizedBond {
         MinterReplaced: MinterReplaced,
         TokenInterTransferAllowed: TokenInterTransferAllowed,
         TokenItrAfterExpiryAllowed: TokenItrAfterExpiryAllowed,
+        MinterOperatorSet: MinterOperatorSet,
     }
 
     #[derive(Drop, starknet::Event)]
@@ -109,6 +111,12 @@ pub mod TokenizedBond {
         pub name: ByteArray,
     }
 
+    #[derive(Drop, starknet::Event)]
+    pub struct MinterOperatorSet {
+        pub token_id: u256,
+        pub is_operator: bool,
+    }
+
     pub mod Errors {
         pub const MINTER_ALREADY_EXISTS: felt252 = 'Minter already exists';
         pub const MINTER_DOES_NOT_EXIST: felt252 = 'Minter does not exist';
@@ -129,6 +137,8 @@ pub mod TokenizedBond {
         pub const ITR_AFTER_EXPIRY_IS_PAUSED: felt252 = 'Inter after expiry is paused';
         pub const TOKEN_IS_FROZEN: felt252 = 'Token is frozen';
         pub const TOKEN_IS_NOT_FROZEN: felt252 = 'Token is not frozen';
+        pub const IS_TOKEN_OPERATOR: felt252 = 'Minter is already operator';
+        pub const NOT_TOKEN_OPERATOR: felt252 = 'Minter is not operator';
     }
 
     #[constructor]
@@ -279,6 +289,26 @@ pub mod TokenizedBond {
             self.minters.entry(new_minter).write(1);
             self.emit(MinterRemoved { minter: old_minter });
             self.emit(MinterAdded { minter: new_minter });
+        }
+
+        fn set_minter_as_operator(ref self: ContractState, token_id: u256) {
+            self.ownable.assert_only_owner();
+            self.token_exists(token_id);
+            assert(!self.minter_is_operator.read(token_id), Errors::IS_TOKEN_OPERATOR);
+            self.minter_is_operator.write(token_id, true);
+            self.emit(MinterOperatorSet { token_id, is_operator: true });
+        }
+    
+        fn unset_minter_as_operator(ref self: ContractState, token_id: u256) {
+            self.ownable.assert_only_owner();
+            self.token_exists(token_id);
+            assert(self.minter_is_operator.read(token_id), Errors::NOT_TOKEN_OPERATOR);
+            self.minter_is_operator.write(token_id, false);
+            self.emit(MinterOperatorSet { token_id, is_operator: false });
+        }
+    
+        fn minter_is_operator(self: @ContractState, token_id: u256, sender: ContractAddress) -> bool {
+            self.minter_is_operator.read(token_id) && self.tokens.entry(token_id).read().minter == sender
         }
 
         fn mint(
