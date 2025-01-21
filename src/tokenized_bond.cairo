@@ -109,6 +109,19 @@ pub mod TokenizedBond {
         pub name: ByteArray,
     }
 
+    #[derive(Drop, Serde, Copy, Clone)]
+    pub struct TransferDestination {
+        pub receiver: ContractAddress,
+        pub amount: u256,
+        pub token_id: u256,
+    }
+
+    #[derive(Drop, Serde)]
+    pub struct TransferParam {
+        pub from: ContractAddress,
+        pub to: Array<TransferDestination>,
+    }
+
     pub mod Errors {
         pub const MINTER_ALREADY_EXISTS: felt252 = 'Minter already exists';
         pub const MINTER_DOES_NOT_EXIST: felt252 = 'Minter does not exist';
@@ -328,6 +341,21 @@ pub mod TokenizedBond {
                 Errors::TOKEN_INVALID_BURN_AMOUNT,
             );
             self.erc1155.burn(minter, token_id, amount);
+        }
+
+        fn make_transfer(ref self: ContractState, to: Array<TransferParam>) {
+            // check owner or operator
+            // let caller = get_caller_address();
+            for transfer in 0..to.len() {
+                let from = to.at(transfer).from;
+                let transfer_destinations = to.at(transfer).to;
+                for destination in 0..transfer_destinations.len() {
+                    let token_id= transfer_destinations.at(destination).token_id;
+                    let amount = transfer_destinations.at(destination).amount;
+                    let receiver = transfer_destinations.at(destination).receiver;
+                    self.erc1155.safe_transfer_from(*from, *receiver, *token_id, *amount, array![].span());
+                }
+            }
         }
     }
 
