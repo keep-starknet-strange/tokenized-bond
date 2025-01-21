@@ -1,4 +1,5 @@
 use starknet::ContractAddress;
+use tokenized_bond::TokenizedBond::TransferParam;
 
 #[starknet::interface]
 pub trait ITokenizedBond<TState> {
@@ -15,4 +16,5 @@ pub trait ITokenizedBond<TState> {
         name: ByteArray,
     );
     fn burn(ref self: TState, token_id: u256, amount: u256);
+    fn make_transfer(ref self: TState, to: Array<TransferParam>);
 }
