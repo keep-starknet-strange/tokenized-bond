@@ -56,6 +56,4 @@ pub fn setup_contract_with_minter() -> (ITokenizedBondDispatcher, ContractAddres
     (tokenized_bond, minter)
 }
 
-fn NOT_MINTER() -> ContractAddress {
-    starknet::contract_address_const::<0x123>()
-}
+
