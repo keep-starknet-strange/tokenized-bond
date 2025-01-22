@@ -144,3 +144,5 @@ scripts/sepolia_deploy.sh
 # update token_id in the script, a value can only be used once
  scripts/sepolia_mint.sh
  ```
+
+ [Example Contract Here](https://sepolia.starkscan.co/contract/0x06fe30af6948d662dffb58d0ba31b877721e346127cb6253b69cf7ec45aa4df5)
