@@ -589,7 +589,7 @@ fn test_set_minter_as_operator_success() {
     tokenized_bond.set_minter_as_operator(MINT_ID());
 
     let expected_event = TokenizedBond::Event::MinterOperatorSet(
-        TokenizedBond::MinterOperatorSet { token_id: MINT_ID(), is_operator: true }
+        TokenizedBond::MinterOperatorSet { token_id: MINT_ID(), is_operator: true },
     );
     spy.assert_emitted(@array![(tokenized_bond.contract_address, expected_event)]);
 
@@ -631,11 +631,13 @@ fn test_unset_minter_as_operator_success() {
     tokenized_bond.unset_minter_as_operator(MINT_ID());
 
     let expected_event = TokenizedBond::Event::MinterOperatorSet(
-        TokenizedBond::MinterOperatorSet { token_id: MINT_ID(), is_operator: false }
+        TokenizedBond::MinterOperatorSet { token_id: MINT_ID(), is_operator: false },
     );
     spy.assert_emitted(@array![(tokenized_bond.contract_address, expected_event)]);
 
-    assert(!tokenized_bond.minter_is_operator(MINT_ID(), MINTER()), 'Minter should not be operator');
+    assert(
+        !tokenized_bond.minter_is_operator(MINT_ID(), MINTER()), 'Minter should not be operator',
+    );
 }
 
 #[test]
@@ -650,12 +652,13 @@ fn test_unset_minter_as_operator_not_operator() {
 fn test_minter_is_operator_check() {
     let (tokenized_bond, minter) = setup_contract_with_minter();
     start_cheat_caller_address(tokenized_bond.contract_address, OWNER());
-    
+
     assert(!tokenized_bond.minter_is_operator(MINT_ID(), minter), 'Should not be operator');
-    
+
     tokenized_bond.set_minter_as_operator(MINT_ID());
     assert(tokenized_bond.minter_is_operator(MINT_ID(), minter), 'Should be operator');
-    
-    assert(!tokenized_bond.minter_is_operator(MINT_ID(), NOT_MINTER()), 'Non-minter not be operator');
 
+    assert(
+        !tokenized_bond.minter_is_operator(MINT_ID(), NOT_MINTER()), 'Non-minter not be operator',
+    );
 }

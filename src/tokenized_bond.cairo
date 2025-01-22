@@ -298,7 +298,7 @@ pub mod TokenizedBond {
             self.minter_is_operator.write(token_id, true);
             self.emit(MinterOperatorSet { token_id, is_operator: true });
         }
-    
+
         fn unset_minter_as_operator(ref self: ContractState, token_id: u256) {
             self.ownable.assert_only_owner();
             self.token_exists(token_id);
@@ -306,9 +306,12 @@ pub mod TokenizedBond {
             self.minter_is_operator.write(token_id, false);
             self.emit(MinterOperatorSet { token_id, is_operator: false });
         }
-    
-        fn minter_is_operator(self: @ContractState, token_id: u256, minter: ContractAddress) -> bool {
-            self.minter_is_operator.read(token_id) && self.tokens.entry(token_id).read().minter == minter
+
+        fn minter_is_operator(
+            self: @ContractState, token_id: u256, minter: ContractAddress,
+        ) -> bool {
+            self.minter_is_operator.read(token_id)
+                && self.tokens.entry(token_id).read().minter == minter
         }
 
         fn mint(
