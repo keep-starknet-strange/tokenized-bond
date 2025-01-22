@@ -103,38 +103,13 @@ While the old vectors remain in storage, this doesn't affect the contract's func
 ### Setup
 
 #### Setting up Scarb
+ - [Install Scarb](https://docs.swmansion.com/scarb/download)
 
-1. **Install asdf**
-    ```
-    brew install asdf
-    ```
-    Link: https://asdf-vm.com/guide/getting-started.html
+ - [Install Starknet Foundry](https://github.com/foundry-rs/starknet-foundry)
 
+ - [Install starkli](https://github.com/xJonathanLEI/starkli)
 
-2. **Verify that asdf is installed**
-    ```
-    asdf --version
-    ```
-
-3. **Install the asdf Scarb plugin**
-    ```
-    asdf plugin add scarb
-    ```
-
-4. **Install the latest version of Scarb**
-    ```
-    asdf install scarb 2.9.2
-    ```
-
-5. **Set a global version for Scarb (need for using scarb init)**
-    ```
-    asdf global scarb 2.9.2
-    ```
-
-6. **Restart the terminal and verify that Scarb is installed correctly**
-    ```
-    scarb --version
-    ```
+ Using `asdf`, `scarb 2.9.2` and `starknet-foundry 0.33.0`  will be set for you
 
 ## Clone this repo
 1. **Clone the repo**
@@ -153,14 +128,21 @@ While the old vectors remain in storage, this doesn't affect the contract's func
 
 # Deployment on Starknet Sepolia
 
-1. Set environment variables in .env file
+1. Set environment variables in .env.example file
 
-2. Use Starkli to deploy the contract
+2. Run the bash script to deploy the contract
+```
+scripts/sepolia_deploy.sh
+```
 
-3. In scripts folder, run the bash script to deploy the contract
+# Call Functions on Deployed Contract
 
-# Documentation
-For more detailed documentation, please visit our [Documentation](https://docs.google.com/document/d/1SaICy1WhUf26X_lZkoL3pf7rd2_N6dJJqob6VDhsDDk/edit?tab=t.0#heading=h.77kv0h6zwazv).
+```
+ scripts/sepolia_add_minter.sh  
+```
+```
+# update token_id in the script, a value can only be used once
+ scripts/sepolia_mint.sh
+ ```
 
-# Repository
-The source code is available on [GitHub](https://github.com/keep-starknet-strange/tokenized-bond).
+ [Example Contract Here](https://sepolia.starkscan.co/contract/0x06fe30af6948d662dffb58d0ba31b877721e346127cb6253b69cf7ec45aa4df5)
