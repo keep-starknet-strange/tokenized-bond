@@ -109,7 +109,7 @@ While the old vectors remain in storage, this doesn't affect the contract's func
 
  - [Install starkli](https://github.com/xJonathanLEI/starkli)
 
- Using `asdf` `scarb 2.9.2` and `starknet-foundry 0.33.0`  will be set for you
+ Using `asdf`, `scarb 2.9.2` and `starknet-foundry 0.33.0`  will be set for you
 
 ## Clone this repo
 1. **Clone the repo**
@@ -140,7 +140,7 @@ scripts/sepolia_deploy.sh
 ```
  scripts/sepolia_add_minter.sh  
 ```
-
 ```
+# a u256 argument can be used here to use a token_id other than the one set in the script, which can only be used once
  scripts/sepolia_mint.sh
  ```
