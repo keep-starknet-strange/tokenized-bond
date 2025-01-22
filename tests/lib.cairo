@@ -391,7 +391,7 @@ fn test_replace_minter_when_new_minter_already_exists() {
 #[test]
 fn test_resume_inter_transfer_success() {
     let mut spy = spy_events();
-    let mut tokenized_bond = setup_contract_with_minter();
+    let (tokenized_bond, _minter) = setup_contract_with_minter();
 
     start_cheat_caller_address(tokenized_bond.contract_address, OWNER());
 
@@ -408,7 +408,7 @@ fn test_resume_inter_transfer_success() {
 #[test]
 fn test_pause_inter_transfer_success() {
     let mut spy = spy_events();
-    let mut tokenized_bond = setup_contract_with_minter();
+    let (tokenized_bond, _minter) = setup_contract_with_minter();
 
     start_cheat_caller_address(tokenized_bond.contract_address, OWNER());
 
@@ -424,7 +424,7 @@ fn test_pause_inter_transfer_success() {
 #[test]
 fn test_resume_itr_after_expiry() {
     let mut spy = spy_events();
-    let mut tokenized_bond = setup_contract_with_minter();
+    let (tokenized_bond, _minter) = setup_contract_with_minter();
 
     start_cheat_caller_address(tokenized_bond.contract_address, OWNER());
 
@@ -441,7 +441,7 @@ fn test_resume_itr_after_expiry() {
 #[test]
 fn test_pause_itr_after_expiry() {
     let mut spy = spy_events();
-    let mut tokenized_bond = setup_contract_with_minter();
+    let (tokenized_bond, _minter) = setup_contract_with_minter();
 
     start_cheat_caller_address(tokenized_bond.contract_address, OWNER());
 
@@ -583,7 +583,7 @@ fn test_unfreeze_not_frozen_token() {
 #[test]
 fn test_set_minter_as_operator_success() {
     let mut spy = spy_events();
-    let mut tokenized_bond = setup_contract_with_minter();
+    let (tokenized_bond, minter) = setup_contract_with_minter();
 
     start_cheat_caller_address(tokenized_bond.contract_address, OWNER());
     tokenized_bond.set_minter_as_operator(MINT_ID());
@@ -593,13 +593,13 @@ fn test_set_minter_as_operator_success() {
     );
     spy.assert_emitted(@array![(tokenized_bond.contract_address, expected_event)]);
 
-    assert(tokenized_bond.minter_is_operator(MINT_ID(), MINTER()), 'Minter should be operator');
+    assert(tokenized_bond.minter_is_operator(MINT_ID(), minter), 'Minter should be operator');
 }
 
 #[test]
 #[should_panic(expected: 'Caller is not the owner')]
 fn test_set_minter_as_operator_not_owner() {
-    let mut tokenized_bond = setup_contract_with_minter();
+    let (tokenized_bond, _minter) = setup_contract_with_minter();
     start_cheat_caller_address(tokenized_bond.contract_address, NOT_MINTER());
     tokenized_bond.set_minter_as_operator(MINT_ID());
 }
@@ -615,7 +615,7 @@ fn test_set_minter_as_operator_nonexistent_token() {
 #[test]
 #[should_panic(expected: 'Minter is already operator')]
 fn test_set_minter_as_operator_already_operator() {
-    let mut tokenized_bond = setup_contract_with_minter();
+    let (tokenized_bond, _minter) = setup_contract_with_minter();
     start_cheat_caller_address(tokenized_bond.contract_address, OWNER());
     tokenized_bond.set_minter_as_operator(MINT_ID());
     tokenized_bond.set_minter_as_operator(MINT_ID());
@@ -624,7 +624,7 @@ fn test_set_minter_as_operator_already_operator() {
 #[test]
 fn test_unset_minter_as_operator_success() {
     let mut spy = spy_events();
-    let mut tokenized_bond = setup_contract_with_minter();
+    let (tokenized_bond, _minter) = setup_contract_with_minter();
 
     start_cheat_caller_address(tokenized_bond.contract_address, OWNER());
     tokenized_bond.set_minter_as_operator(MINT_ID());
@@ -641,22 +641,22 @@ fn test_unset_minter_as_operator_success() {
 #[test]
 #[should_panic(expected: 'Minter is not operator')]
 fn test_unset_minter_as_operator_not_operator() {
-    let mut tokenized_bond = setup_contract_with_minter();
+    let (tokenized_bond, _minter) = setup_contract_with_minter();
     start_cheat_caller_address(tokenized_bond.contract_address, OWNER());
     tokenized_bond.unset_minter_as_operator(MINT_ID());
 }
 
 #[test]
 fn test_minter_is_operator_check() {
-    let mut tokenized_bond = setup_contract_with_minter();
+    let (tokenized_bond, minter) = setup_contract_with_minter();
     start_cheat_caller_address(tokenized_bond.contract_address, OWNER());
     
     // Initially minter is not operator
-    assert(!tokenized_bond.minter_is_operator(MINT_ID(), MINTER()), 'Should not be operator');
+    assert(!tokenized_bond.minter_is_operator(MINT_ID(), minter), 'Should not be operator');
     
     // Set as operator
     tokenized_bond.set_minter_as_operator(MINT_ID());
-    assert(tokenized_bond.minter_is_operator(MINT_ID(), MINTER()), 'Should be operator');
+    assert(tokenized_bond.minter_is_operator(MINT_ID(), minter), 'Should be operator');
     
     // Check non-minter address
     assert(!tokenized_bond.minter_is_operator(MINT_ID(), NOT_MINTER()), 'Non-minter not be operator');
