@@ -1,6 +1,7 @@
 #[starknet::contract]
 pub mod TokenizedBond {
-    use tokenized_bond::ITokenizedBond;
+    use openzeppelin_token::erc1155::interface::ERC1155ABI;
+use tokenized_bond::ITokenizedBond;
     use tokenized_bond::utils::constants::ZERO_ADDRESS;
     use openzeppelin_access::ownable::OwnableComponent;
     use openzeppelin_introspection::src5::SRC5Component;
@@ -111,14 +112,14 @@ pub mod TokenizedBond {
         pub name: ByteArray,
     }
 
-    #[derive(Drop, Serde, Copy, Clone)]
+    #[derive(Drop, Serde, Copy)]
     pub struct TransferDestination {
         pub receiver: ContractAddress,
         pub amount: u256,
         pub token_id: u256,
     }
 
-    #[derive(Drop, Serde)]
+    #[derive(Drop, Serde, Clone)]
     pub struct TransferParam {
         pub from: ContractAddress,
         pub to: Array<TransferDestination>,
@@ -378,18 +379,40 @@ pub mod TokenizedBond {
             self.erc1155.burn(minter, token_id, amount);
         }
 
-        fn make_transfer(ref self: ContractState, to: Array<TransferParam>) {
-            // check owner or operator
-            // let caller = get_caller_address();
-            for transfer in 0..to.len() {
-                let from = to.at(transfer).from;
-                let transfer_destinations = to.at(transfer).to;
+        fn check_owner_and_operator(
+            self: @ContractState, transfers: Array<TransferParam>,
+        ) -> bool {
+            let mut is_owner_or_operator = false;
+            let caller = get_caller_address();
+            for transfer in 0..transfers.len() {
+                let from = transfers.at(transfer).from;
+                let transfer_destinations = transfers.at(transfer).to;
+                for destination in 0..transfer_destinations.len() {
+                    let token_id = transfer_destinations.at(destination).token_id;
+                    if caller == *from {
+                        if self.minter_is_operator(*token_id, caller) {
+                            is_owner_or_operator = true;
+                        }
+                    }
+                    if caller == *from && self.balance_of(*from, *token_id) > 0 {
+                        is_owner_or_operator = true;
+                    }
+                }
+            };
+            is_owner_or_operator
+        }
+
+        fn make_transfer(ref self: ContractState, transfers: Array<TransferParam>) {
+            assert(self.check_owner_and_operator(transfers.clone()), Errors::CALLER_IS_NOT_TOKEN_MINTER);
+            for transfer in 0..transfers.len() {
+                let from = transfers.at(transfer).from;
+                let transfer_destinations = transfers.at(transfer).to;
                 for destination in 0..transfer_destinations.len() {
                     let token_id= transfer_destinations.at(destination).token_id;
                     let amount = transfer_destinations.at(destination).amount;
                     let receiver = transfer_destinations.at(destination).receiver;
-                    // self.inter_transfer_allowed(token_id, from, receiver);
-                    // self.is_inter_transfer_after_expiry(token_id, receiver);
+                    self.inter_transfer_allowed(*token_id, *from, *receiver);
+                    self.is_inter_transfer_after_expiry(*token_id, *receiver);
                     assert(from != receiver, Errors::FROM_IS_RECIEVER);
                     assert(self.erc1155.balance_of(*from, *token_id) >= *amount, Errors::INSUFFICIENT_BALANCE);
                     self.erc1155.safe_transfer_from(*from, *receiver, *token_id, *amount, array![].span());
@@ -477,6 +500,18 @@ pub mod TokenizedBond {
                 self.tokens.entry(token_id).read().minter == get_caller_address(),
                 Errors::CALLER_IS_NOT_TOKEN_MINTER,
             );
+        }
+
+        fn is_owner_or_operator(self: @ContractState, token_id: u256) -> bool {
+            let caller = get_caller_address();
+            if self.tokens.entry(token_id).read().minter == caller
+                    && self.minter_is_operator.read(token_id) {
+                return true;
+                    }
+            if caller == self.ownable.owner() {
+                return true;
+            }
+            return false;
         }
 
         fn token_exists(self: @ContractState, token_id: u256) {
