@@ -651,13 +651,10 @@ fn test_minter_is_operator_check() {
     let (tokenized_bond, minter) = setup_contract_with_minter();
     start_cheat_caller_address(tokenized_bond.contract_address, OWNER());
     
-    // Initially minter is not operator
     assert(!tokenized_bond.minter_is_operator(MINT_ID(), minter), 'Should not be operator');
     
-    // Set as operator
     tokenized_bond.set_minter_as_operator(MINT_ID());
     assert(tokenized_bond.minter_is_operator(MINT_ID(), minter), 'Should be operator');
     
-    // Check non-minter address
     assert(!tokenized_bond.minter_is_operator(MINT_ID(), NOT_MINTER()), 'Non-minter not be operator');
 }
