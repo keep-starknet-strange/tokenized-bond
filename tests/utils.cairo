@@ -57,5 +57,5 @@ pub fn setup_contract_with_minter() -> (ITokenizedBondDispatcher, ContractAddres
 }
 
 fn NOT_MINTER() -> ContractAddress {
-    starknet::contract_address_const::<0x123>() // Use a smaller hex value
+    starknet::contract_address_const::<0x123>()
 }

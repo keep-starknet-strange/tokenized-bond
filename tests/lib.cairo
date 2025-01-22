@@ -657,4 +657,5 @@ fn test_minter_is_operator_check() {
     assert(tokenized_bond.minter_is_operator(MINT_ID(), minter), 'Should be operator');
     
     assert(!tokenized_bond.minter_is_operator(MINT_ID(), NOT_MINTER()), 'Non-minter not be operator');
+
 }

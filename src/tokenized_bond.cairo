@@ -137,8 +137,8 @@ pub mod TokenizedBond {
         pub const ITR_AFTER_EXPIRY_IS_PAUSED: felt252 = 'Inter after expiry is paused';
         pub const TOKEN_IS_FROZEN: felt252 = 'Token is frozen';
         pub const TOKEN_IS_NOT_FROZEN: felt252 = 'Token is not frozen';
-        pub const IS_TOKEN_OPERATOR: felt252 = 'Minter is already operator';
-        pub const NOT_TOKEN_OPERATOR: felt252 = 'Minter is not operator';
+        pub const MINTER_IS_TOKEN_OPERATOR: felt252 = 'Minter is already operator';
+        pub const MINTER_NOT_TOKEN_OPERATOR: felt252 = 'Minter is not operator';
     }
 
     #[constructor]
@@ -294,7 +294,7 @@ pub mod TokenizedBond {
         fn set_minter_as_operator(ref self: ContractState, token_id: u256) {
             self.ownable.assert_only_owner();
             self.token_exists(token_id);
-            assert(!self.minter_is_operator.read(token_id), Errors::IS_TOKEN_OPERATOR);
+            assert(!self.minter_is_operator.read(token_id), Errors::MINTER_IS_TOKEN_OPERATOR);
             self.minter_is_operator.write(token_id, true);
             self.emit(MinterOperatorSet { token_id, is_operator: true });
         }
@@ -302,13 +302,13 @@ pub mod TokenizedBond {
         fn unset_minter_as_operator(ref self: ContractState, token_id: u256) {
             self.ownable.assert_only_owner();
             self.token_exists(token_id);
-            assert(self.minter_is_operator.read(token_id), Errors::NOT_TOKEN_OPERATOR);
+            assert(self.minter_is_operator.read(token_id), Errors::MINTER_NOT_TOKEN_OPERATOR);
             self.minter_is_operator.write(token_id, false);
             self.emit(MinterOperatorSet { token_id, is_operator: false });
         }
     
-        fn minter_is_operator(self: @ContractState, token_id: u256, sender: ContractAddress) -> bool {
-            self.minter_is_operator.read(token_id) && self.tokens.entry(token_id).read().minter == sender
+        fn minter_is_operator(self: @ContractState, token_id: u256, minter: ContractAddress) -> bool {
+            self.minter_is_operator.read(token_id) && self.tokens.entry(token_id).read().minter == minter
         }
 
         fn mint(

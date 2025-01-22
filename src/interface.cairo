@@ -23,5 +23,5 @@ pub trait ITokenizedBond<TState> {
     fn unfreeze_token(ref self: TState, token_id: u256);
     fn set_minter_as_operator(ref self: TState, token_id: u256);
     fn unset_minter_as_operator(ref self: TState, token_id: u256);
-    fn minter_is_operator(self: @TState, token_id: u256, sender: ContractAddress) -> bool;
+    fn minter_is_operator(self: @TState, token_id: u256, minter: ContractAddress) -> bool;
 }
