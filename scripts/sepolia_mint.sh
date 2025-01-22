@@ -33,7 +33,7 @@ echo "starkli account fetch $ACCOUNT_ADDRESS \
 "
 EXPIRATION_DATE=$(date -v +1m +"%s") # core::integer::u64
 INTEREST_RATE=5 # core::integer::u32 (example: 5.00% interest rate)
-TOKEN_ID=${1: "0x2b 0x00"} # core::integer::u256
+TOKEN_ID="0x2b 0x00" # core::integer::u256
 AMOUNT="0x57d27e23acbdcfe68000000000000000 0x026e4d30eccc3215dd8f31" # core::integer::u256
 CUSTODIAL=0x1 # core::bool
 NAME="0x0 0x6689648321346829542552480214628 0x13" # core::byte_array::ByteArray

@@ -141,6 +141,6 @@ scripts/sepolia_deploy.sh
  scripts/sepolia_add_minter.sh  
 ```
 ```
-# a u256 argument can be used here to use a token_id other than the one set in the script, which can only be used once
+# update token_id in the script, a value can only be used once
  scripts/sepolia_mint.sh
  ```

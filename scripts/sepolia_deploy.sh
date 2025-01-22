@@ -55,6 +55,8 @@ CALLDATA=$(echo -n $OWNER_ADDRESS $URI)
 # VVVVV maybe use this VVVV
 # CALLDATA=$(echo -n $URI | xxd -r -p | base64)
 
+echo "CALLDATA: $CALLDATA"
+
 echo "starkli deploy --rpc $RPC_URL --network sepolia --private-key $ACCOUNT_PRIVATE_KEY --fee-token STRK --account $ACCOUNT_FILE $TOKENIZED_BOND_CONTRACT_CLASSHASH $CALLDATA"
 
 TOKENIZED_BOND_DEPLOY_OUTPUT=$(starkli deploy --rpc $RPC_URL --network sepolia --private-key $ACCOUNT_PRIVATE_KEY --fee-token STRK --account $ACCOUNT_FILE $TOKENIZED_BOND_CONTRACT_CLASSHASH $CALLDATA)
