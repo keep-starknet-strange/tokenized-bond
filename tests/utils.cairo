@@ -36,7 +36,7 @@ pub fn setup_receiver() -> ContractAddress {
     declare_deploy("MockERC1155Receiver", calldata)
 }
 
-pub fn setup_contract_with_minter() -> ITokenizedBondDispatcher {
+pub fn setup_contract_with_minter() -> (ITokenizedBondDispatcher, ContractAddress) {
     let mut tokenized_bond = ITokenizedBondDispatcher { contract_address: setup() };
     let minter = setup_receiver();
 
@@ -53,5 +53,7 @@ pub fn setup_contract_with_minter() -> ITokenizedBondDispatcher {
             CUSTODIAL_FALSE(),
             TOKEN_NAME(),
         );
-    tokenized_bond
+    (tokenized_bond, minter)
 }
+
+
