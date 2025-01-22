@@ -373,7 +373,7 @@ pub mod TokenizedBond {
             self.only_token_minter(token_id);
             assert(
                 self.erc1155.balance_of(minter, token_id) >= amount || amount == 0,
-                ::TOKEN_INVALID_BURN_AMOUNT,
+                Errors::TOKEN_INVALID_BURN_AMOUNT,
             );
             self.erc1155.burn(minter, token_id, amount);
         }
