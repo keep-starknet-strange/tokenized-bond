@@ -1,5 +1,5 @@
 use tokenized_bond::utils::constants::{
-    OWNER, TOKEN_URI, TIME_IN_THE_FUTURE, INTEREST_RATE, MINT_ID, MINT_AMOUNT, CUSTODIAL_FALSE,
+    OWNER, TOKEN_URI, TIME_IN_THE_FUTURE, INTEREST_RATE, TOKEN_ID, MINT_AMOUNT, CUSTODIAL_FALSE,
     TOKEN_NAME,
 };
 use tokenized_bond::{ITokenizedBondDispatcher, ITokenizedBondDispatcherTrait};
@@ -48,7 +48,7 @@ pub fn setup_contract_with_minter() -> (ITokenizedBondDispatcher, ContractAddres
         .mint(
             TIME_IN_THE_FUTURE(),
             INTEREST_RATE(),
-            MINT_ID(),
+            TOKEN_ID(),
             MINT_AMOUNT(),
             CUSTODIAL_FALSE(),
             TOKEN_NAME(),

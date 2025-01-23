@@ -3,7 +3,7 @@ use tokenized_bond::{TokenizedBond, ITokenizedBondDispatcher, ITokenizedBondDisp
 use openzeppelin_token::erc1155::interface::{IERC1155Dispatcher, IERC1155DispatcherTrait};
 use tokenized_bond::utils::constants::{
     OWNER, MINTER, ZERO_ADDRESS, INTEREST_RATE, INTEREST_RATE_ZERO, MINT_AMOUNT, TOKEN_NAME,
-    MINT_ID, TIME_IN_THE_FUTURE, CUSTODIAL_FALSE, NOT_MINTER, NEW_MINTER,
+    TOKEN_ID, TIME_IN_THE_FUTURE, CUSTODIAL_FALSE, NOT_MINTER, NEW_MINTER, TRANSFER_AMOUNT,
 };
 use snforge_std::{
     EventSpyAssertionsTrait, spy_events, start_cheat_caller_address, stop_cheat_caller_address,
@@ -101,13 +101,13 @@ fn test_mint_success() {
         .mint(
             TIME_IN_THE_FUTURE(),
             INTEREST_RATE(),
-            MINT_ID(),
+            TOKEN_ID(),
             MINT_AMOUNT(),
             CUSTODIAL_FALSE(),
             TOKEN_NAME(),
         );
 
-    let minter_balance = erc_1155.balance_of(account: minter, token_id: MINT_ID());
+    let minter_balance = erc_1155.balance_of(account: minter, token_id: TOKEN_ID());
     assert(minter_balance == MINT_AMOUNT(), 'Minter balance is not correct');
 }
 
@@ -126,7 +126,7 @@ fn test_token_already_minted() {
         .mint(
             TIME_IN_THE_FUTURE(),
             INTEREST_RATE(),
-            MINT_ID(),
+            TOKEN_ID(),
             MINT_AMOUNT(),
             CUSTODIAL_FALSE(),
             TOKEN_NAME(),
@@ -135,7 +135,7 @@ fn test_token_already_minted() {
         .mint(
             TIME_IN_THE_FUTURE(),
             INTEREST_RATE(),
-            MINT_ID(),
+            TOKEN_ID(),
             MINT_AMOUNT(),
             CUSTODIAL_FALSE(),
             TOKEN_NAME(),
@@ -154,7 +154,7 @@ fn test_mint_when_caller_is_not_minter() {
         .mint(
             TIME_IN_THE_FUTURE(),
             INTEREST_RATE(),
-            MINT_ID(),
+            TOKEN_ID(),
             MINT_AMOUNT(),
             CUSTODIAL_FALSE(),
             TOKEN_NAME(),
@@ -176,7 +176,7 @@ fn test_mint_with_expired_date() {
         .mint(
             time_in_the_past,
             INTEREST_RATE(),
-            MINT_ID(),
+            TOKEN_ID(),
             MINT_AMOUNT(),
             CUSTODIAL_FALSE(),
             TOKEN_NAME(),
@@ -199,7 +199,7 @@ fn test_mint_when_interest_rate_is_zero() {
         .mint(
             TIME_IN_THE_FUTURE(),
             INTEREST_RATE_ZERO(),
-            MINT_ID(),
+            TOKEN_ID(),
             MINT_AMOUNT(),
             CUSTODIAL_FALSE(),
             TOKEN_NAME(),
@@ -220,18 +220,18 @@ fn test_burn_token() {
         .mint(
             TIME_IN_THE_FUTURE(),
             INTEREST_RATE(),
-            MINT_ID(),
+            TOKEN_ID(),
             MINT_AMOUNT(),
             CUSTODIAL_FALSE(),
             TOKEN_NAME(),
         );
-    let pre_burn_minter_balance = erc_1155.balance_of(account: minter, token_id: MINT_ID());
+    let pre_burn_minter_balance = erc_1155.balance_of(account: minter, token_id: TOKEN_ID());
     assert(pre_burn_minter_balance == MINT_AMOUNT(), 'pre burn balance is incorrect');
     start_cheat_caller_address(tokenized_bond.contract_address, minter);
 
-    tokenized_bond.burn(MINT_ID(), MINT_AMOUNT());
+    tokenized_bond.burn(TOKEN_ID(), MINT_AMOUNT());
 
-    let post_burn_minter_balance = erc_1155.balance_of(account: minter, token_id: MINT_ID());
+    let post_burn_minter_balance = erc_1155.balance_of(account: minter, token_id: TOKEN_ID());
     assert(post_burn_minter_balance == 0, 'post burn balance is incorrect');
 }
 
@@ -244,7 +244,7 @@ fn test_burn_token_that_does_not_exist() {
     tokenized_bond.add_minter(MINTER());
     start_cheat_caller_address(tokenized_bond.contract_address, MINTER());
 
-    tokenized_bond.burn(MINT_ID(), MINT_AMOUNT());
+    tokenized_bond.burn(TOKEN_ID(), MINT_AMOUNT());
 }
 
 #[test]
@@ -260,13 +260,13 @@ fn test_burn_with_invalid_minter() {
         .mint(
             TIME_IN_THE_FUTURE(),
             INTEREST_RATE(),
-            MINT_ID(),
+            TOKEN_ID(),
             MINT_AMOUNT(),
             CUSTODIAL_FALSE(),
             TOKEN_NAME(),
         );
     start_cheat_caller_address(tokenized_bond.contract_address, NOT_MINTER());
-    tokenized_bond.burn(MINT_ID(), MINT_AMOUNT());
+    tokenized_bond.burn(TOKEN_ID(), MINT_AMOUNT());
 }
 
 #[test]
@@ -284,16 +284,16 @@ fn test_burn_with_too_high_amount() {
         .mint(
             TIME_IN_THE_FUTURE(),
             INTEREST_RATE(),
-            MINT_ID(),
+            TOKEN_ID(),
             MINT_AMOUNT(),
             CUSTODIAL_FALSE(),
             TOKEN_NAME(),
         );
-    let pre_burn_minter_balance = erc_1155.balance_of(account: minter, token_id: MINT_ID());
+    let pre_burn_minter_balance = erc_1155.balance_of(account: minter, token_id: TOKEN_ID());
     assert(pre_burn_minter_balance == MINT_AMOUNT(), 'pre burn balance is incorrect');
     start_cheat_caller_address(tokenized_bond.contract_address, minter);
     let too_high_amount = MINT_AMOUNT() + 1;
-    tokenized_bond.burn(MINT_ID(), too_high_amount);
+    tokenized_bond.burn(TOKEN_ID(), too_high_amount);
 }
 
 #[test]
@@ -314,7 +314,7 @@ fn test_replace_minter_success() {
         .mint(
             TIME_IN_THE_FUTURE(),
             INTEREST_RATE(),
-            MINT_ID(),
+            TOKEN_ID(),
             MINT_AMOUNT(),
             CUSTODIAL_FALSE(),
             TOKEN_NAME(),
@@ -325,19 +325,19 @@ fn test_replace_minter_success() {
 
     let expected_tokenized_bond_event = TokenizedBond::Event::MinterReplaced(
         TokenizedBond::MinterReplaced {
-            token_id: MINT_ID(), old_minter: minter, new_minter: new_minter,
+            token_id: TOKEN_ID(), old_minter: minter, new_minter: new_minter,
         },
     );
-    let new_minter_balance = erc_1155.balance_of(account: new_minter, token_id: MINT_ID());
-    let old_minter_balance = erc_1155.balance_of(account: minter, token_id: MINT_ID());
+    let new_minter_balance = erc_1155.balance_of(account: new_minter, token_id: TOKEN_ID());
+    let old_minter_balance = erc_1155.balance_of(account: minter, token_id: TOKEN_ID());
 
     assert(old_minter_balance == 0, 'Old minter balance incorrect');
     assert(new_minter_balance == MINT_AMOUNT(), 'New minter balance incorrect');
 
     start_cheat_caller_address(tokenized_bond.contract_address, new_minter);
-    tokenized_bond.burn(token_id: MINT_ID(), amount: 1);
+    tokenized_bond.burn(token_id: TOKEN_ID(), amount: 1);
     let new_minter_balance_after_burn = erc_1155
-        .balance_of(account: new_minter, token_id: MINT_ID());
+        .balance_of(account: new_minter, token_id: TOKEN_ID());
     assert(new_minter_balance_after_burn == MINT_AMOUNT() - 1, 'New minter balance incorrect');
     spy.assert_emitted(@array![(tokenized_bond.contract_address, expected_tokenized_bond_event)]);
 }
@@ -378,7 +378,7 @@ fn test_replace_minter_when_new_minter_already_exists() {
         .mint(
             TIME_IN_THE_FUTURE(),
             INTEREST_RATE(),
-            MINT_ID(),
+            TOKEN_ID(),
             MINT_AMOUNT(),
             CUSTODIAL_FALSE(),
             TOKEN_NAME(),
@@ -395,11 +395,11 @@ fn test_resume_inter_transfer_success() {
 
     start_cheat_caller_address(tokenized_bond.contract_address, OWNER());
 
-    tokenized_bond.pause_inter_transfer(MINT_ID());
-    tokenized_bond.resume_inter_transfer(MINT_ID());
+    tokenized_bond.pause_inter_transfer(TOKEN_ID());
+    tokenized_bond.resume_inter_transfer(TOKEN_ID());
 
     let expected_tokenized_bond_event = TokenizedBond::Event::TokenInterTransferAllowed(
-        TokenizedBond::TokenInterTransferAllowed { token_id: MINT_ID(), is_transferable: true },
+        TokenizedBond::TokenInterTransferAllowed { token_id: TOKEN_ID(), is_transferable: true },
     );
 
     spy.assert_emitted(@array![(tokenized_bond.contract_address, expected_tokenized_bond_event)]);
@@ -412,10 +412,10 @@ fn test_pause_inter_transfer_success() {
 
     start_cheat_caller_address(tokenized_bond.contract_address, OWNER());
 
-    tokenized_bond.pause_inter_transfer(MINT_ID());
+    tokenized_bond.pause_inter_transfer(TOKEN_ID());
 
     let expected_tokenized_bond_event = TokenizedBond::Event::TokenInterTransferAllowed(
-        TokenizedBond::TokenInterTransferAllowed { token_id: MINT_ID(), is_transferable: false },
+        TokenizedBond::TokenInterTransferAllowed { token_id: TOKEN_ID(), is_transferable: false },
     );
 
     spy.assert_emitted(@array![(tokenized_bond.contract_address, expected_tokenized_bond_event)]);
@@ -428,11 +428,11 @@ fn test_resume_itr_after_expiry() {
 
     start_cheat_caller_address(tokenized_bond.contract_address, OWNER());
 
-    tokenized_bond.pause_itr_after_expiry(MINT_ID());
-    tokenized_bond.resume_itr_after_expiry(MINT_ID());
+    tokenized_bond.pause_itr_after_expiry(TOKEN_ID());
+    tokenized_bond.resume_itr_after_expiry(TOKEN_ID());
 
     let expected_tokenized_bond_event = TokenizedBond::Event::TokenItrAfterExpiryAllowed(
-        TokenizedBond::TokenItrAfterExpiryAllowed { token_id: MINT_ID(), is_transferable: true },
+        TokenizedBond::TokenItrAfterExpiryAllowed { token_id: TOKEN_ID(), is_transferable: true },
     );
 
     spy.assert_emitted(@array![(tokenized_bond.contract_address, expected_tokenized_bond_event)]);
@@ -445,10 +445,10 @@ fn test_pause_itr_after_expiry() {
 
     start_cheat_caller_address(tokenized_bond.contract_address, OWNER());
 
-    tokenized_bond.pause_itr_after_expiry(MINT_ID());
+    tokenized_bond.pause_itr_after_expiry(TOKEN_ID());
 
     let expected_tokenized_bond_event = TokenizedBond::Event::TokenItrAfterExpiryAllowed(
-        TokenizedBond::TokenItrAfterExpiryAllowed { token_id: MINT_ID(), is_transferable: false },
+        TokenizedBond::TokenItrAfterExpiryAllowed { token_id: TOKEN_ID(), is_transferable: false },
     );
 
     spy.assert_emitted(@array![(tokenized_bond.contract_address, expected_tokenized_bond_event)]);
@@ -466,14 +466,14 @@ fn test_freeze_token_success() {
         .mint(
             TIME_IN_THE_FUTURE(),
             INTEREST_RATE(),
-            MINT_ID(),
+            TOKEN_ID(),
             MINT_AMOUNT(),
             CUSTODIAL_FALSE(),
             TOKEN_NAME(),
         );
 
     start_cheat_caller_address(tokenized_bond.contract_address, OWNER());
-    tokenized_bond.freeze_token(MINT_ID());
+    tokenized_bond.freeze_token(TOKEN_ID());
 }
 
 #[test]
@@ -489,14 +489,14 @@ fn test_unfreeze_token_success() {
         .mint(
             TIME_IN_THE_FUTURE(),
             INTEREST_RATE(),
-            MINT_ID(),
+            TOKEN_ID(),
             MINT_AMOUNT(),
             CUSTODIAL_FALSE(),
             TOKEN_NAME(),
         );
 
     start_cheat_caller_address(tokenized_bond.contract_address, OWNER());
-    tokenized_bond.freeze_token(MINT_ID());
+    tokenized_bond.freeze_token(TOKEN_ID());
 }
 
 #[test]
@@ -513,13 +513,13 @@ fn test_freeze_token_not_owner() {
         .mint(
             TIME_IN_THE_FUTURE(),
             INTEREST_RATE(),
-            MINT_ID(),
+            TOKEN_ID(),
             MINT_AMOUNT(),
             CUSTODIAL_FALSE(),
             TOKEN_NAME(),
         );
 
-    tokenized_bond.freeze_token(MINT_ID());
+    tokenized_bond.freeze_token(TOKEN_ID());
 }
 
 #[test]
@@ -528,7 +528,7 @@ fn test_freeze_nonexistent_token() {
     let mut tokenized_bond = ITokenizedBondDispatcher { contract_address: setup() };
 
     start_cheat_caller_address(tokenized_bond.contract_address, OWNER());
-    tokenized_bond.freeze_token(MINT_ID());
+    tokenized_bond.freeze_token(TOKEN_ID());
 }
 
 #[test]
@@ -545,15 +545,15 @@ fn test_freeze_already_frozen_token() {
         .mint(
             TIME_IN_THE_FUTURE(),
             INTEREST_RATE(),
-            MINT_ID(),
+            TOKEN_ID(),
             MINT_AMOUNT(),
             CUSTODIAL_FALSE(),
             TOKEN_NAME(),
         );
 
     start_cheat_caller_address(tokenized_bond.contract_address, OWNER());
-    tokenized_bond.freeze_token(MINT_ID());
-    tokenized_bond.freeze_token(MINT_ID());
+    tokenized_bond.freeze_token(TOKEN_ID());
+    tokenized_bond.freeze_token(TOKEN_ID());
 }
 
 #[test]
@@ -570,14 +570,14 @@ fn test_unfreeze_not_frozen_token() {
         .mint(
             TIME_IN_THE_FUTURE(),
             INTEREST_RATE(),
-            MINT_ID(),
+            TOKEN_ID(),
             MINT_AMOUNT(),
             CUSTODIAL_FALSE(),
             TOKEN_NAME(),
         );
 
     start_cheat_caller_address(tokenized_bond.contract_address, OWNER());
-    tokenized_bond.unfreeze_token(MINT_ID());
+    tokenized_bond.unfreeze_token(TOKEN_ID());
 }
 
 #[test]
@@ -586,14 +586,14 @@ fn test_set_minter_as_operator_success() {
     let (tokenized_bond, minter) = setup_contract_with_minter();
 
     start_cheat_caller_address(tokenized_bond.contract_address, OWNER());
-    tokenized_bond.set_minter_as_operator(MINT_ID());
+    tokenized_bond.set_minter_as_operator(TOKEN_ID());
 
     let expected_event = TokenizedBond::Event::MinterOperatorSet(
-        TokenizedBond::MinterOperatorSet { token_id: MINT_ID(), is_operator: true },
+        TokenizedBond::MinterOperatorSet { token_id: TOKEN_ID(), is_operator: true },
     );
     spy.assert_emitted(@array![(tokenized_bond.contract_address, expected_event)]);
 
-    assert(tokenized_bond.minter_is_operator(MINT_ID(), minter), 'Minter should be operator');
+    assert(tokenized_bond.minter_is_operator(TOKEN_ID(), minter), 'Minter should be operator');
 }
 
 #[test]
@@ -601,7 +601,7 @@ fn test_set_minter_as_operator_success() {
 fn test_set_minter_as_operator_not_owner() {
     let (tokenized_bond, _minter) = setup_contract_with_minter();
     start_cheat_caller_address(tokenized_bond.contract_address, NOT_MINTER());
-    tokenized_bond.set_minter_as_operator(MINT_ID());
+    tokenized_bond.set_minter_as_operator(TOKEN_ID());
 }
 
 #[test]
@@ -609,7 +609,7 @@ fn test_set_minter_as_operator_not_owner() {
 fn test_set_minter_as_operator_nonexistent_token() {
     let mut tokenized_bond = ITokenizedBondDispatcher { contract_address: setup() };
     start_cheat_caller_address(tokenized_bond.contract_address, OWNER());
-    tokenized_bond.set_minter_as_operator(MINT_ID());
+    tokenized_bond.set_minter_as_operator(TOKEN_ID());
 }
 
 #[test]
@@ -617,8 +617,8 @@ fn test_set_minter_as_operator_nonexistent_token() {
 fn test_set_minter_as_operator_already_operator() {
     let (tokenized_bond, _minter) = setup_contract_with_minter();
     start_cheat_caller_address(tokenized_bond.contract_address, OWNER());
-    tokenized_bond.set_minter_as_operator(MINT_ID());
-    tokenized_bond.set_minter_as_operator(MINT_ID());
+    tokenized_bond.set_minter_as_operator(TOKEN_ID());
+    tokenized_bond.set_minter_as_operator(TOKEN_ID());
 }
 
 #[test]
@@ -627,16 +627,16 @@ fn test_unset_minter_as_operator_success() {
     let (tokenized_bond, _minter) = setup_contract_with_minter();
 
     start_cheat_caller_address(tokenized_bond.contract_address, OWNER());
-    tokenized_bond.set_minter_as_operator(MINT_ID());
-    tokenized_bond.unset_minter_as_operator(MINT_ID());
+    tokenized_bond.set_minter_as_operator(TOKEN_ID());
+    tokenized_bond.unset_minter_as_operator(TOKEN_ID());
 
     let expected_event = TokenizedBond::Event::MinterOperatorSet(
-        TokenizedBond::MinterOperatorSet { token_id: MINT_ID(), is_operator: false },
+        TokenizedBond::MinterOperatorSet { token_id: TOKEN_ID(), is_operator: false },
     );
     spy.assert_emitted(@array![(tokenized_bond.contract_address, expected_event)]);
 
     assert(
-        !tokenized_bond.minter_is_operator(MINT_ID(), MINTER()), 'Minter should not be operator',
+        !tokenized_bond.minter_is_operator(TOKEN_ID(), MINTER()), 'Minter should not be operator',
     );
 }
 
@@ -645,7 +645,7 @@ fn test_unset_minter_as_operator_success() {
 fn test_unset_minter_as_operator_not_operator() {
     let (tokenized_bond, _minter) = setup_contract_with_minter();
     start_cheat_caller_address(tokenized_bond.contract_address, OWNER());
-    tokenized_bond.unset_minter_as_operator(MINT_ID());
+    tokenized_bond.unset_minter_as_operator(TOKEN_ID());
 }
 
 #[test]
@@ -653,12 +653,35 @@ fn test_minter_is_operator_check() {
     let (tokenized_bond, minter) = setup_contract_with_minter();
     start_cheat_caller_address(tokenized_bond.contract_address, OWNER());
 
-    assert(!tokenized_bond.minter_is_operator(MINT_ID(), minter), 'Should not be operator');
+    assert(!tokenized_bond.minter_is_operator(TOKEN_ID(), minter), 'Should not be operator');
 
-    tokenized_bond.set_minter_as_operator(MINT_ID());
-    assert(tokenized_bond.minter_is_operator(MINT_ID(), minter), 'Should be operator');
+    tokenized_bond.set_minter_as_operator(TOKEN_ID());
+    assert(tokenized_bond.minter_is_operator(TOKEN_ID(), minter), 'Should be operator');
 
     assert(
-        !tokenized_bond.minter_is_operator(MINT_ID(), NOT_MINTER()), 'Non-minter not be operator',
+        !tokenized_bond.minter_is_operator(TOKEN_ID(), NOT_MINTER()), 'Non-minter not be operator',
     );
 }
+
+#[test]
+fn test_check_owner_and_operator() {
+    let (tokenized_bond, minter) = setup_contract_with_minter();
+    start_cheat_caller_address(tokenized_bond.contract_address, OWNER());
+
+    let trasfer_destination = array![TokenizedBond::TransferDestination {
+        receiver: OWNER(),
+        amount: TRANSFER_AMOUNT(),
+        token_id: TOKEN_ID(),
+    }];
+
+    let transfers = array![
+        TokenizedBond::TransferParam {
+            from: OWNER(),
+            to: trasfer_destination
+        },
+    ];
+
+    assert(tokenized_bond.check_owner_and_operator(transfers), 'Owner and operator should pass');
+
+    tokenized_bond.set_minter_as_operator(TOKEN_ID());
+    assert(tokenized_bond.check
