@@ -1,7 +1,7 @@
 #[starknet::contract]
 pub mod TokenizedBond {
     use openzeppelin_token::erc1155::interface::ERC1155ABI;
-use tokenized_bond::ITokenizedBond;
+    use tokenized_bond::ITokenizedBond;
     use tokenized_bond::utils::constants::ZERO_ADDRESS;
     use openzeppelin_access::ownable::OwnableComponent;
     use openzeppelin_introspection::src5::SRC5Component;
@@ -379,9 +379,7 @@ use tokenized_bond::ITokenizedBond;
             self.erc1155.burn(minter, token_id, amount);
         }
 
-        fn check_owner_and_operator(
-            self: @ContractState, transfers: Array<TransferParam>,
-        ) -> bool {
+        fn check_owner_and_operator(self: @ContractState, transfers: Array<TransferParam>) -> bool {
             let mut is_owner_or_operator = false;
             let caller = get_caller_address();
             for transfer in 0..transfers.len() {
@@ -403,19 +401,27 @@ use tokenized_bond::ITokenizedBond;
         }
 
         fn make_transfer(ref self: ContractState, transfers: Array<TransferParam>) {
-            assert(self.check_owner_and_operator(transfers.clone()), Errors::CALLER_IS_NOT_TOKEN_MINTER);
+            assert(
+                self.check_owner_and_operator(transfers.clone()),
+                Errors::CALLER_IS_NOT_TOKEN_MINTER,
+            );
             for transfer in 0..transfers.len() {
                 let from = transfers.at(transfer).from;
                 let transfer_destinations = transfers.at(transfer).to;
                 for destination in 0..transfer_destinations.len() {
-                    let token_id= transfer_destinations.at(destination).token_id;
+                    let token_id = transfer_destinations.at(destination).token_id;
                     let amount = transfer_destinations.at(destination).amount;
                     let receiver = transfer_destinations.at(destination).receiver;
                     self.inter_transfer_allowed(*token_id, *from, *receiver);
                     self.is_inter_transfer_after_expiry(*token_id, *receiver);
                     assert(from != receiver, Errors::FROM_IS_RECIEVER);
-                    assert(self.erc1155.balance_of(*from, *token_id) >= *amount, Errors::INSUFFICIENT_BALANCE);
-                    self.erc1155.safe_transfer_from(*from, *receiver, *token_id, *amount, array![].span());
+                    assert(
+                        self.erc1155.balance_of(*from, *token_id) >= *amount,
+                        Errors::INSUFFICIENT_BALANCE,
+                    );
+                    self
+                        .erc1155
+                        .safe_transfer_from(*from, *receiver, *token_id, *amount, array![].span());
                 }
             }
         }
@@ -505,9 +511,9 @@ use tokenized_bond::ITokenizedBond;
         fn is_owner_or_operator(self: @ContractState, token_id: u256) -> bool {
             let caller = get_caller_address();
             if self.tokens.entry(token_id).read().minter == caller
-                    && self.minter_is_operator.read(token_id) {
+                && self.minter_is_operator.read(token_id) {
                 return true;
-                    }
+            }
             if caller == self.ownable.owner() {
                 return true;
             }
