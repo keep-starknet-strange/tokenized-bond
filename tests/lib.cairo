@@ -679,7 +679,7 @@ fn test_check_owner_and_operator_success() {
     assert(tokenized_bond.check_owner_and_operator(transfers.clone()), 'Owner check should pass');
     start_cheat_caller_address(tokenized_bond.contract_address, OWNER());
     tokenized_bond.set_minter_as_operator(TOKEN_ID());
-    
+
     start_cheat_caller_address(tokenized_bond.contract_address, minter);
     assert(
         tokenized_bond.check_owner_and_operator(transfers.clone()), 'Operator check should pass',
