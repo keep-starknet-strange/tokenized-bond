@@ -710,6 +710,7 @@ fn test_check_owner_and_operator_multiple_transfers() {
 
     start_cheat_caller_address(tokenized_bond.contract_address, OWNER());
     tokenized_bond.set_minter_as_operator(TOKEN_ID());
+    start_cheat_caller_address(tokenized_bond.contract_address, minter);
     assert(tokenized_bond.check_owner_and_operator(transfers.clone()), 'Should pass as operator');
 
     start_cheat_caller_address(tokenized_bond.contract_address, NOT_MINTER());
