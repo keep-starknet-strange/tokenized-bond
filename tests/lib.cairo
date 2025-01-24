@@ -664,7 +664,7 @@ fn test_minter_is_operator_check() {
 }
 
 #[test]
-fn test_check_owner_and_operator() {
+fn test_check_owner_and_operator_success() {
     let (tokenized_bond, minter) = setup_contract_with_minter();
 
     start_cheat_caller_address(tokenized_bond.contract_address, minter);
