@@ -52,7 +52,7 @@ pub fn setup_contract_with_minter() -> (ITokenizedBondDispatcher, ContractAddres
             MINT_AMOUNT(),
             CUSTODIAL_FALSE(),
             TOKEN_NAME(),
-        );
+        );  
     (tokenized_bond, minter)
 }
 

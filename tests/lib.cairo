@@ -666,17 +666,7 @@ fn test_minter_is_operator_check() {
 #[test]
 fn test_check_owner_and_operator_success() {
     let (tokenized_bond, minter) = setup_contract_with_minter();
-
     start_cheat_caller_address(tokenized_bond.contract_address, minter);
-    tokenized_bond
-        .mint(
-            TIME_IN_THE_FUTURE(),
-            INTEREST_RATE(),
-            TOKEN_ID(),
-            MINT_AMOUNT(),
-            CUSTODIAL_FALSE(),
-            TOKEN_NAME(),
-        );
 
     let transfer_destination = array![
         TokenizedBond::TransferDestination {
@@ -689,6 +679,8 @@ fn test_check_owner_and_operator_success() {
     assert(tokenized_bond.check_owner_and_operator(transfers.clone()), 'Owner check should pass');
     start_cheat_caller_address(tokenized_bond.contract_address, OWNER());
     tokenized_bond.set_minter_as_operator(TOKEN_ID());
+    
+    start_cheat_caller_address(tokenized_bond.contract_address, minter);
     assert(
         tokenized_bond.check_owner_and_operator(transfers.clone()), 'Operator check should pass',
     );
