@@ -109,6 +109,8 @@ While the old vectors remain in storage, this doesn't affect the contract's func
 
  - [Install starkli](https://github.com/xJonathanLEI/starkli)
 
+ - [Install Cairo Coverage](https://github.com/software-mansion/cairo-coverage)
+
  Using `asdf`, `scarb 2.9.2` and `starknet-foundry 0.33.0`  will be set for you
 
 ## Clone this repo
