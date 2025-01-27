@@ -687,12 +687,12 @@ fn test_check_owner_and_operator_success() {
 }
 
 #[test]
-fn test_check_owner_and_operator_multiple_transfers() {
+fn test_check_owner_and_operator_multiple_destinations() {
     let (tokenized_bond, minter) = setup_contract_with_minter();
     let receiver1 = setup_receiver();
     let receiver2 = setup_receiver();
 
-    let transfer_destinations = array![
+    let multiple_destinations = array![
         TokenizedBond::TransferDestination {
             receiver: receiver1, amount: TRANSFER_AMOUNT(), token_id: TOKEN_ID(),
         },
@@ -701,21 +701,14 @@ fn test_check_owner_and_operator_multiple_transfers() {
         },
     ];
 
-    let transfers = array![
-        TokenizedBond::TransferParam { from: minter, to: transfer_destinations },
+    let transfer_with_multiple_destinations = array![
+        TokenizedBond::TransferParam { from: minter, to: multiple_destinations },
     ];
 
     start_cheat_caller_address(tokenized_bond.contract_address, minter);
-    assert(tokenized_bond.check_owner_and_operator(transfers.clone()), 'Should pass as minter');
-
-    start_cheat_caller_address(tokenized_bond.contract_address, OWNER());
-    tokenized_bond.set_minter_as_operator(TOKEN_ID());
-    start_cheat_caller_address(tokenized_bond.contract_address, minter);
-    assert(tokenized_bond.check_owner_and_operator(transfers.clone()), 'Should pass as operator');
-
-    start_cheat_caller_address(tokenized_bond.contract_address, NOT_MINTER());
     assert(
-        !tokenized_bond.check_owner_and_operator(transfers.clone()), 'Should fail as non-operator',
+        tokenized_bond.check_owner_and_operator(transfer_with_multiple_destinations),
+        'Failed for multiple destination',
     );
 }
 
@@ -787,38 +780,23 @@ fn test_check_owner_and_operator_as_non_owner_operator() {
 }
 
 #[test]
-fn test_check_owner_and_operator_multiple_destinations() {
+fn test_check_owner_and_operator_nonexistent_token() {
     let (tokenized_bond, minter) = setup_contract_with_minter();
     let receiver1 = setup_receiver();
-    let receiver2 = setup_receiver();
 
-    let multiple_destinations = array![
+    let nonexistent_token_destination = array![
         TokenizedBond::TransferDestination {
-            receiver: receiver1, amount: TRANSFER_AMOUNT(), token_id: TOKEN_ID(),
-        },
-        TokenizedBond::TransferDestination {
-            receiver: receiver2, amount: TRANSFER_AMOUNT(), token_id: TOKEN_ID(),
+            receiver: receiver1, amount: TRANSFER_AMOUNT(), token_id: TOKEN_ID() + 1,
         },
     ];
 
-    let multiple_transfers = array![
-        TokenizedBond::TransferParam { from: minter, to: multiple_destinations },
+    let nonexistent_token_transfers = array![
+        TokenizedBond::TransferParam { from: minter, to: nonexistent_token_destination },
     ];
 
-    start_cheat_caller_address(tokenized_bond.contract_address, minter);
     assert(
-        tokenized_bond.check_owner_and_operator(multiple_transfers),
-        'Failed for multiple destination',
-    );
-}
-
-#[test]
-fn test_check_owner_and_operator_empty_array() {
-    let (tokenized_bond, _minter) = setup_contract_with_minter();
-    let empty_transfers = array![];
-    assert(
-        !tokenized_bond.check_owner_and_operator(empty_transfers),
-        'Should fail for empty transfers',
+        !tokenized_bond.check_owner_and_operator(nonexistent_token_transfers),
+        'Failed for nonexistent token',
     );
 }
 
@@ -826,10 +804,16 @@ fn test_check_owner_and_operator_empty_array() {
 fn test_check_owner_and_operator_zero_balance() {
     let (tokenized_bond, minter) = setup_contract_with_minter();
     let receiver1 = setup_receiver();
+    let other_account = setup_receiver();
+
+    start_cheat_caller_address(tokenized_bond.contract_address, OWNER());
+    tokenized_bond.add_minter(other_account);
+
+    start_cheat_caller_address(tokenized_bond.contract_address, other_account);
 
     let zero_balance_destination = array![
         TokenizedBond::TransferDestination {
-            receiver: receiver1, amount: TRANSFER_AMOUNT(), token_id: TOKEN_ID() + 1,
+            receiver: receiver1, amount: TRANSFER_AMOUNT(), token_id: TOKEN_ID(),
         },
     ];
 
@@ -840,5 +824,45 @@ fn test_check_owner_and_operator_zero_balance() {
     assert(
         !tokenized_bond.check_owner_and_operator(zero_balance_transfers),
         'Should fail for zero balance',
+    );
+}
+
+#[test]
+fn test_check_owner_and_operator_multiple_transfers() {
+    let (tokenized_bond, minter) = setup_contract_with_minter();
+    let receiver1 = setup_receiver();
+    let receiver2 = setup_receiver();
+
+    // Create two separate transfers, each with one destination
+    let transfers = array![
+        TokenizedBond::TransferParam {
+            from: minter,
+            to: array![
+                TokenizedBond::TransferDestination {
+                    receiver: receiver1, amount: TRANSFER_AMOUNT(), token_id: TOKEN_ID(),
+                },
+            ],
+        },
+        TokenizedBond::TransferParam {
+            from: minter,
+            to: array![
+                TokenizedBond::TransferDestination {
+                    receiver: receiver2, amount: TRANSFER_AMOUNT(), token_id: TOKEN_ID(),
+                },
+            ],
+        },
+    ];
+
+    start_cheat_caller_address(tokenized_bond.contract_address, minter);
+    assert(tokenized_bond.check_owner_and_operator(transfers.clone()), 'Should pass as minter');
+
+    start_cheat_caller_address(tokenized_bond.contract_address, OWNER());
+    tokenized_bond.set_minter_as_operator(TOKEN_ID());
+    start_cheat_caller_address(tokenized_bond.contract_address, minter);
+    assert(tokenized_bond.check_owner_and_operator(transfers.clone()), 'Should pass as operator');
+
+    start_cheat_caller_address(tokenized_bond.contract_address, NOT_MINTER());
+    assert(
+        !tokenized_bond.check_owner_and_operator(transfers.clone()), 'Should fail as non-operator',
     );
 }
