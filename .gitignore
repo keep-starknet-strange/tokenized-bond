@@ -3,3 +3,4 @@ target
 .env
 .snfoundry_versioned_programs
 snfoundry_trace
+/coverage
