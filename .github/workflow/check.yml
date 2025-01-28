@@ -31,7 +31,7 @@ jobs:
             - run: curl -L https://raw.githubusercontent.com/software-mansion/cairo-coverage/main/scripts/install.sh | sh
             - run: snforge test --coverage
             - run: npx jest --coverage
-            - uses: codecov/codecov-action@v4
+            - uses: codecov/codecov-action@v5
               with:
                 file: ./coverage.lcov
                 token: ${{ secrets.CODECOV_TOKEN }}
