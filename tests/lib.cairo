@@ -832,8 +832,6 @@ fn test_check_owner_and_operator_multiple_transfers() {
     let (tokenized_bond, minter) = setup_contract_with_minter();
     let receiver1 = setup_receiver();
     let receiver2 = setup_receiver();
-
-    // Create two separate transfers, each with one destination
     let transfers = array![
         TokenizedBond::TransferParam {
             from: minter,
