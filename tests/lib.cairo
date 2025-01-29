@@ -782,10 +782,11 @@ fn test_check_owner_and_operator_zero_balance() {
 }
 
 #[test]
-fn test_check_owner_and_operator_multiple_transfers() {
+fn test_check_owner_and_operator_allows_multiple_transfers_when_caller_has_token_balance() {
     let (tokenized_bond, minter) = setup_contract_with_minter();
     let receiver1 = setup_receiver();
     let receiver2 = setup_receiver();
+
     let transfers = array![
         TokenizedBond::TransferParam {
             from: minter,
@@ -806,16 +807,66 @@ fn test_check_owner_and_operator_multiple_transfers() {
     ];
 
     start_cheat_caller_address(tokenized_bond.contract_address, minter);
-    assert(tokenized_bond.check_owner_and_operator(transfers.clone()), 'Should pass as minter');
+    assert(tokenized_bond.check_owner_and_operator(transfers), 'Invalid multiple transfer');
+}
+
+#[test]
+fn test_check_owner_and_operator_allows_multiple_transfers_when_caller_is_minter_operator() {
+    let (tokenized_bond, minter) = setup_contract_with_minter();
+    let receiver1 = setup_receiver();
+    let receiver2 = setup_receiver();
+
+    let transfers = array![
+        TokenizedBond::TransferParam {
+            from: minter,
+            to: array![
+                TokenizedBond::TransferDestination {
+                    receiver: receiver1, amount: TRANSFER_AMOUNT(), token_id: TOKEN_ID(),
+                },
+            ],
+        },
+        TokenizedBond::TransferParam {
+            from: minter,
+            to: array![
+                TokenizedBond::TransferDestination {
+                    receiver: receiver2, amount: TRANSFER_AMOUNT(), token_id: TOKEN_ID(),
+                },
+            ],
+        },
+    ];
 
     start_cheat_caller_address(tokenized_bond.contract_address, OWNER());
     tokenized_bond.set_minter_as_operator(TOKEN_ID());
+
     start_cheat_caller_address(tokenized_bond.contract_address, minter);
-    assert(tokenized_bond.check_owner_and_operator(transfers.clone()), 'Should pass as operator');
+    assert(tokenized_bond.check_owner_and_operator(transfers), 'Invalid operator transfer');
+}
+
+#[test]
+fn test_check_owner_and_operator_denies_multiple_transfers_without_balance_or_operator_rights() {
+    let (tokenized_bond, minter) = setup_contract_with_minter();
+    let receiver1 = setup_receiver();
+    let receiver2 = setup_receiver();
+
+    let transfers = array![
+        TokenizedBond::TransferParam {
+            from: minter,
+            to: array![
+                TokenizedBond::TransferDestination {
+                    receiver: receiver1, amount: TRANSFER_AMOUNT(), token_id: TOKEN_ID(),
+                },
+            ],
+        },
+        TokenizedBond::TransferParam {
+            from: minter,
+            to: array![
+                TokenizedBond::TransferDestination {
+                    receiver: receiver2, amount: TRANSFER_AMOUNT(), token_id: TOKEN_ID(),
+                },
+            ],
+        },
+    ];
 
     start_cheat_caller_address(tokenized_bond.contract_address, NOT_MINTER());
-    assert(
-        !tokenized_bond.check_owner_and_operator(transfers.clone()),
-        'Should fail as non-operator' // TODO: fix this test by adding non-owner
-    );
+    assert(!tokenized_bond.check_owner_and_operator(transfers), 'Invalid non-operator transfer');
 }
