@@ -818,6 +818,7 @@ fn test_check_owner_and_operator_multiple_transfers() {
 
     start_cheat_caller_address(tokenized_bond.contract_address, NOT_MINTER());
     assert(
-        !tokenized_bond.check_owner_and_operator(transfers.clone()), 'Should fail as non-operator', // TODO: fix this test by adding non-owner
+        !tokenized_bond.check_owner_and_operator(transfers.clone()),
+        'Should fail as non-operator' // TODO: fix this test by adding non-owner
     );
 }

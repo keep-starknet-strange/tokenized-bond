@@ -1,3 +1,6 @@
 target
 .snfoundry_cache/
 .env
+.snfoundry_versioned_programs
+snfoundry_trace
+/coverage
