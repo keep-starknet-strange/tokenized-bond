@@ -782,7 +782,7 @@ fn test_check_owner_and_operator_zero_balance() {
 }
 
 #[test]
-fn test_check_owner_and_operator_allows_multiple_transfers_when_caller_has_token_balance() {
+fn test_check_owner_and_operator_multiple_transfers_when_caller_has_balance() {
     let (tokenized_bond, minter) = setup_contract_with_minter();
     let receiver1 = setup_receiver();
     let receiver2 = setup_receiver();
@@ -811,7 +811,7 @@ fn test_check_owner_and_operator_allows_multiple_transfers_when_caller_has_token
 }
 
 #[test]
-fn test_check_owner_and_operator_allows_multiple_transfers_when_caller_is_minter_operator() {
+fn test_check_owner_and_operator_multiple_transfers_when_caller_is_minter_operator() {
     let (tokenized_bond, minter) = setup_contract_with_minter();
     let receiver1 = setup_receiver();
     let receiver2 = setup_receiver();
@@ -843,7 +843,7 @@ fn test_check_owner_and_operator_allows_multiple_transfers_when_caller_is_minter
 }
 
 #[test]
-fn test_check_owner_and_operator_denies_multiple_transfers_without_balance_or_operator_rights() {
+fn test_check_owner_and_operator_denies_multiple_transfers_zero_balance_or_operator_rights() {
     let (tokenized_bond, minter) = setup_contract_with_minter();
     let receiver1 = setup_receiver();
     let receiver2 = setup_receiver();
