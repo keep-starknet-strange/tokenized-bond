@@ -827,3 +827,27 @@ fn test_check_owner_operator_with_empty_destinations() {
     start_cheat_caller_address(tokenized_bond.contract_address, minter);
     assert(!tokenized_bond.check_owner_and_operator(transfers), 'fail for empty destinations');
 }
+
+#[test]
+fn test_check_owner_operator_for_operator_with_balance() {
+    let (tokenized_bond, minter) = setup_contract_with_minter();
+    let non_minter = setup_receiver();
+    let erc_1155 = IERC1155Dispatcher { contract_address: tokenized_bond.contract_address };
+
+    start_cheat_caller_address(tokenized_bond.contract_address, minter);
+    erc_1155.safe_transfer_from(minter, non_minter, TOKEN_ID(), TRANSFER_AMOUNT(), array![].span());
+
+    let transfer_destination = array![
+        TokenizedBond::TransferDestination {
+            receiver: OWNER(), amount: TRANSFER_AMOUNT(), token_id: TOKEN_ID(),
+        },
+    ];
+
+    let transfers = array![
+        TokenizedBond::TransferParam { from: non_minter, to: transfer_destination },
+    ];
+
+    start_cheat_caller_address(tokenized_bond.contract_address, non_minter);
+
+    assert(tokenized_bond.check_owner_and_operator(transfers), 'Should pass with balance');
+}
