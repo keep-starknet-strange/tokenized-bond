@@ -816,3 +816,14 @@ fn test_check_owner_operator_different_from_address_is_not_caller() {
     start_cheat_caller_address(tokenized_bond.contract_address, minter);
     assert(!tokenized_bond.check_owner_and_operator(transfers), 'Fail for different from address');
 }
+
+#[test]
+fn test_check_owner_operator_with_empty_destinations() {
+    let (tokenized_bond, minter) = setup_contract_with_minter();
+
+    let empty_destinations = array![];
+    let transfers = array![TokenizedBond::TransferParam { from: minter, to: empty_destinations }];
+
+    start_cheat_caller_address(tokenized_bond.contract_address, minter);
+    assert(!tokenized_bond.check_owner_and_operator(transfers), 'fail for empty destinations');
+}
