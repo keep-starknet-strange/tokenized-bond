@@ -508,18 +508,6 @@ pub mod TokenizedBond {
             );
         }
 
-        fn is_owner_or_operator(self: @ContractState, token_id: u256) -> bool {
-            let caller = get_caller_address();
-            if self.tokens.entry(token_id).read().minter == caller
-                && self.minter_is_operator.read(token_id) {
-                return true;
-            }
-            if caller == self.ownable.owner() {
-                return true;
-            }
-            return false;
-        }
-
         fn token_exists(self: @ContractState, token_id: u256) {
             assert(
                 self.tokens.entry(token_id).read().minter != ZERO_ADDRESS(),

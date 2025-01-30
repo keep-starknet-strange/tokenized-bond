@@ -109,6 +109,8 @@ While the old vectors remain in storage, this doesn't affect the contract's func
 
  - [Install starkli](https://github.com/xJonathanLEI/starkli)
 
+ - [Install Cairo Coverage](https://github.com/software-mansion/cairo-coverage)
+
  Using `asdf`, `scarb 2.9.2` and `starknet-foundry 0.33.0`  will be set for you
 
 ## Clone this repo
@@ -145,4 +147,7 @@ scripts/sepolia_deploy.sh
  scripts/sepolia_mint.sh
  ```
 
+```
+ scripts/sepolia_make_transfer.sh
+```
  [Example Contract Here](https://sepolia.starkscan.co/contract/0x06fe30af6948d662dffb58d0ba31b877721e346127cb6253b69cf7ec45aa4df5)
