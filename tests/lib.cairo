@@ -826,4 +826,10 @@ fn test_check_owner_operator_with_empty_destinations() {
 
     start_cheat_caller_address(tokenized_bond.contract_address, minter);
     assert(!tokenized_bond.check_owner_and_operator(transfers), 'fail for empty destinations');
+
+    start_cheat_caller_address(tokenized_bond.contract_address, NOT_MINTER());
+    assert(
+        !tokenized_bond.check_owner_and_operator(transfers.clone()),
+        'Should fail as non-operator' // TODO: fix this test by adding non-owner
+    );
 }
