@@ -4,7 +4,7 @@ use openzeppelin_token::erc1155::interface::{IERC1155Dispatcher, IERC1155Dispatc
 use openzeppelin_token::erc1155::ERC1155Component;
 use tokenized_bond::utils::constants::{
     OWNER, MINTER, ZERO_ADDRESS, INTEREST_RATE, INTEREST_RATE_ZERO, MINT_AMOUNT, TOKEN_NAME,
-    TOKEN_ID, TIME_IN_THE_FUTURE, CUSTODIAL_FALSE, NOT_MINTER, NEW_MINTER, AMOUNT_TRANSFERRED
+    TOKEN_ID, TIME_IN_THE_FUTURE, CUSTODIAL_FALSE, NOT_MINTER, NEW_MINTER, AMOUNT_TRANSFERRED,
 };
 use snforge_std::{
     EventSpyAssertionsTrait, spy_events, start_cheat_caller_address, stop_cheat_caller_address,
@@ -671,14 +671,15 @@ fn test_make_transfer_success() {
     let receiver = setup_receiver();
     let transfer = valid_transfer(from: minter, to: receiver, amount: AMOUNT_TRANSFERRED());
 
-    let expected_event =  ERC1155Component::Event::TransferSingle(
-    ERC1155Component::TransferSingle{
-        operator: minter,
-        from: minter,
-        to: receiver,
-        id: TOKEN_ID(),
-        value: AMOUNT_TRANSFERRED(),
-    });
+    let expected_event = ERC1155Component::Event::TransferSingle(
+        ERC1155Component::TransferSingle {
+            operator: minter,
+            from: minter,
+            to: receiver,
+            id: TOKEN_ID(),
+            value: AMOUNT_TRANSFERRED(),
+        },
+    );
 
     start_cheat_caller_address(tokenized_bond.contract_address, minter);
     tokenized_bond.make_transfer(transfer);
@@ -690,8 +691,10 @@ fn test_make_transfer_success() {
 #[should_panic(expected: 'Caller is not minter or owner')]
 fn test_make_transfer_when_caller_is_not_the_minter() {
     let (tokenized_bond, _minter) = setup_contract_with_minter();
-    let transfers = valid_transfer(NOT_MINTER(), to: setup_receiver(), amount: AMOUNT_TRANSFERRED());
-    
+    let transfers = valid_transfer(
+        NOT_MINTER(), to: setup_receiver(), amount: AMOUNT_TRANSFERRED(),
+    );
+
     start_cheat_caller_address(tokenized_bond.contract_address, NOT_MINTER());
     tokenized_bond.make_transfer(transfers);
 }

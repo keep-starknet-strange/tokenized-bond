@@ -413,8 +413,14 @@ pub mod TokenizedBond {
                     let token_id = transfer_destinations.at(destination).token_id;
                     let amount = transfer_destinations.at(destination).amount;
                     let receiver = transfer_destinations.at(destination).receiver;
-                    assert(self.inter_transfer_allowed(*token_id, *from, *receiver), Errors::TOKEN_ITR_PAUSED);
-                    assert(self.is_inter_transfer_after_expiry(*token_id, *receiver), Errors::ITR_AFTER_EXPIRY_IS_PAUSED);
+                    assert(
+                        self.inter_transfer_allowed(*token_id, *from, *receiver),
+                        Errors::TOKEN_ITR_PAUSED,
+                    );
+                    assert(
+                        self.is_inter_transfer_after_expiry(*token_id, *receiver),
+                        Errors::ITR_AFTER_EXPIRY_IS_PAUSED,
+                    );
                     assert(from != receiver, Errors::FROM_IS_RECIEVER);
                     assert(
                         self.erc1155.balance_of(*from, *token_id) >= *amount,
