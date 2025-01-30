@@ -669,7 +669,7 @@ fn test_make_transfer_success() {
     let mut spy = spy_events();
     let (tokenized_bond, minter) = setup_contract_with_minter();
     let receiver = setup_receiver();
-    let transfer = valid_transfer(from: minter, to: receiver);
+    let transfer = valid_transfer(from: minter, to: receiver, amount: AMOUNT_TRANSFERRED());
 
     let expected_event =  ERC1155Component::Event::TransferSingle(
     ERC1155Component::TransferSingle{
@@ -690,7 +690,7 @@ fn test_make_transfer_success() {
 #[should_panic(expected: 'Caller is not minter or owner')]
 fn test_make_transfer_when_caller_is_not_the_minter() {
     let (tokenized_bond, _minter) = setup_contract_with_minter();
-    let transfers = valid_transfer(NOT_MINTER(), to: setup_receiver());
+    let transfers = valid_transfer(NOT_MINTER(), to: setup_receiver(), amount: AMOUNT_TRANSFERRED());
     
     start_cheat_caller_address(tokenized_bond.contract_address, NOT_MINTER());
     tokenized_bond.make_transfer(transfers);
@@ -702,7 +702,7 @@ fn test_make_transfer_when_token_itr_is_paused() {
     let (tokenized_bond, minter) = setup_contract_with_minter();
     let from = address_with_tokens(tokenized_bond, minter);
     let to = setup_receiver();
-    let transfer = valid_transfer(from, to);
+    let transfer = valid_transfer(from, to, AMOUNT_TRANSFERRED());
 
     start_cheat_caller_address(tokenized_bond.contract_address, OWNER());
     tokenized_bond.pause_inter_transfer(TOKEN_ID());
