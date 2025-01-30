@@ -780,3 +780,21 @@ fn test_check_owner_and_operator_zero_balance() {
     let result = tokenized_bond.check_owner_and_operator(zero_balance_transfers);
     assert(!result, 'Return false for zero balance');
 }
+
+#[test]
+fn test_check_owner_operator_minter_and_operator_with_zero_balance() {
+    let (tokenized_bond, minter) = setup_contract_with_minter();
+    start_cheat_caller_address(tokenized_bond.contract_address, OWNER());
+    tokenized_bond.set_minter_as_operator(TOKEN_ID());
+
+    let transfer_destination = array![
+        TokenizedBond::TransferDestination {
+            receiver: OWNER(), amount: TRANSFER_AMOUNT(), token_id: TOKEN_ID(),
+        },
+    ];
+
+    let transfers = array![TokenizedBond::TransferParam { from: minter, to: transfer_destination }];
+
+    start_cheat_caller_address(tokenized_bond.contract_address, minter);
+    assert(tokenized_bond.check_owner_and_operator(transfers), 'Should fail with zero balance');
+}
