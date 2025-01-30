@@ -717,7 +717,7 @@ fn test_make_transfer_when_inte_transfer_after_expiry_is_paused() {
     let (tokenized_bond, minter) = setup_contract_with_minter();
     let from = address_with_tokens(tokenized_bond, minter);
     let to = setup_receiver();
-    let transfer = valid_transfer(from, to);
+    let transfer = valid_transfer(from, to, AMOUNT_TRANSFERRED());
 
     start_cheat_caller_address(tokenized_bond.contract_address, OWNER());
     tokenized_bond.pause_itr_after_expiry(TOKEN_ID());
@@ -732,7 +732,19 @@ fn test_make_transfer_when_inte_transfer_after_expiry_is_paused() {
 fn test_make_transfer_when_from_is_receiver() {
     let (tokenized_bond, minter) = setup_contract_with_minter();
     let from = address_with_tokens(tokenized_bond, minter);
-    let transfer = valid_transfer(from, from);
+    let transfer = valid_transfer(from, from, AMOUNT_TRANSFERRED());
+
+    start_cheat_caller_address(tokenized_bond.contract_address, from);
+    tokenized_bond.make_transfer(transfer);
+}
+
+#[test]
+#[should_panic(expected: 'Insufficient balance')]
+fn test_make_transfer_when_balance_is_insufficent() {
+    let (tokenized_bond, minter) = setup_contract_with_minter();
+    let from = address_with_tokens(tokenized_bond, minter);
+    let to = setup_receiver();
+    let transfer = valid_transfer(from, to, AMOUNT_TRANSFERRED() + 1);
 
     start_cheat_caller_address(tokenized_bond.contract_address, from);
     tokenized_bond.make_transfer(transfer);

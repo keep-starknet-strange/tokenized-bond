@@ -56,10 +56,10 @@ pub fn setup_contract_with_minter() -> (ITokenizedBondDispatcher, ContractAddres
     (tokenized_bond, minter)
 }
 
-pub fn valid_transfer(from: ContractAddress, to: ContractAddress) -> Array<TokenizedBond::TransferParam> {
+pub fn valid_transfer(from: ContractAddress, to: ContractAddress, amount: u256) -> Array<TokenizedBond::TransferParam> {
     let destination = array![TokenizedBond::TransferDestination {
         receiver: to,
-        amount: AMOUNT_TRANSFERRED(),
+        amount: amount,
         token_id: TOKEN_ID(),
     }];
 
@@ -73,7 +73,7 @@ pub fn address_with_tokens(token_contract: ITokenizedBondDispatcher, minter: Con
     let address_with_tokens = setup_receiver();
 
     start_cheat_caller_address(token_contract.contract_address, minter);
-    let transfer = valid_transfer(from: minter, to: address_with_tokens);
+    let transfer = valid_transfer(from: minter, to: address_with_tokens, amount: AMOUNT_TRANSFERRED());
     token_contract.make_transfer(transfer);
     address_with_tokens
 }
