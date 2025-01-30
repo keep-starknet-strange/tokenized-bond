@@ -36,7 +36,11 @@ pub fn MINT_AMOUNT() -> u256 {
     100
 }
 
-pub fn MINT_ID() -> u256 {
+pub fn AMOUNT_TRANSFERRED() -> u256 {
+    10
+}
+
+pub fn TOKEN_ID() -> u256 {
     42
 }
 

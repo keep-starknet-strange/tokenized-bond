@@ -1,6 +1,5 @@
 #[starknet::contract]
 pub mod TokenizedBond {
-    use openzeppelin_token::erc1155::interface::ERC1155ABI;
     use tokenized_bond::ITokenizedBond;
     use tokenized_bond::utils::constants::ZERO_ADDRESS;
     use openzeppelin_access::ownable::OwnableComponent;
@@ -141,12 +140,14 @@ pub mod TokenizedBond {
         pub const TOKEN_INTEREST_RATE_ZERO: felt252 = 'Interest rate 0';
         pub const TOKEN_INVALID_BURN_AMOUNT: felt252 = 'Invalid burn amount';
         pub const CALLER_IS_NOT_TOKEN_MINTER: felt252 = 'Caller is not token minter';
+        pub const CALLER_IS_NOT_TOKEN_MINTER_OR_OWNER: felt252 = 'Caller is not minter or owner';
         pub const MINTER_ADDRESS_CANT_BE_THE_ZERO: felt252 = 'Minter address cant be the zero';
         pub const NEW_MINTER_ALREADY_EXISTS: felt252 = 'New minter already exists';
         pub const OLD_MINTER_DOES_NOT_EXIST: felt252 = 'Old minter does not exist';
         pub const CALLER_IS_NOT_A_MINTER: felt252 = 'Caller is not a minter';
         pub const TOKEN_IS_NOT_PAUSED: felt252 = 'Token transfer is not paused';
         pub const TOKEN_IS_PAUSED: felt252 = 'Token transfer is paused';
+        pub const TOKEN_ITR_PAUSED: felt252 = 'Token ITR is paused';
         pub const ITR_AFTER_EXPIRY_IS_NOT_PAUSED: felt252 = 'Inter after expiry not paused';
         pub const ITR_AFTER_EXPIRY_IS_PAUSED: felt252 = 'Inter after expiry is paused';
         pub const TOKEN_IS_FROZEN: felt252 = 'Token is frozen';
@@ -403,7 +404,7 @@ pub mod TokenizedBond {
         fn make_transfer(ref self: ContractState, transfers: Array<TransferParam>) {
             assert(
                 self.check_owner_and_operator(transfers.clone()),
-                Errors::CALLER_IS_NOT_TOKEN_MINTER,
+                Errors::CALLER_IS_NOT_TOKEN_MINTER_OR_OWNER,
             );
             for transfer in 0..transfers.len() {
                 let from = transfers.at(transfer).from;
@@ -412,8 +413,8 @@ pub mod TokenizedBond {
                     let token_id = transfer_destinations.at(destination).token_id;
                     let amount = transfer_destinations.at(destination).amount;
                     let receiver = transfer_destinations.at(destination).receiver;
-                    self.inter_transfer_allowed(*token_id, *from, *receiver);
-                    self.is_inter_transfer_after_expiry(*token_id, *receiver);
+                    assert(self.inter_transfer_allowed(*token_id, *from, *receiver), Errors::TOKEN_ITR_PAUSED);
+                    assert(self.is_inter_transfer_after_expiry(*token_id, *receiver), Errors::ITR_AFTER_EXPIRY_IS_PAUSED);
                     assert(from != receiver, Errors::FROM_IS_RECIEVER);
                     assert(
                         self.erc1155.balance_of(*from, *token_id) >= *amount,

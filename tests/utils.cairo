@@ -1,8 +1,8 @@
 use tokenized_bond::utils::constants::{
-    OWNER, TOKEN_URI, TIME_IN_THE_FUTURE, INTEREST_RATE, MINT_ID, MINT_AMOUNT, CUSTODIAL_FALSE,
-    TOKEN_NAME,
+    OWNER, TOKEN_URI, TIME_IN_THE_FUTURE, INTEREST_RATE, TOKEN_ID, MINT_AMOUNT, CUSTODIAL_FALSE,
+    TOKEN_NAME, AMOUNT_TRANSFERRED
 };
-use tokenized_bond::{ITokenizedBondDispatcher, ITokenizedBondDispatcherTrait};
+use tokenized_bond::{TokenizedBond, ITokenizedBondDispatcher, ITokenizedBondDispatcherTrait};
 use snforge_std::{declare, ContractClassTrait, DeclareResultTrait, start_cheat_caller_address};
 use starknet::{ContractAddress};
 
@@ -48,7 +48,7 @@ pub fn setup_contract_with_minter() -> (ITokenizedBondDispatcher, ContractAddres
         .mint(
             TIME_IN_THE_FUTURE(),
             INTEREST_RATE(),
-            MINT_ID(),
+            TOKEN_ID(),
             MINT_AMOUNT(),
             CUSTODIAL_FALSE(),
             TOKEN_NAME(),
@@ -56,3 +56,24 @@ pub fn setup_contract_with_minter() -> (ITokenizedBondDispatcher, ContractAddres
     (tokenized_bond, minter)
 }
 
+pub fn valid_transfer(from: ContractAddress, to: ContractAddress) -> Array<TokenizedBond::TransferParam> {
+    let destination = array![TokenizedBond::TransferDestination {
+        receiver: to,
+        amount: AMOUNT_TRANSFERRED(),
+        token_id: TOKEN_ID(),
+    }];
+
+  array![TokenizedBond::TransferParam {
+        from: from,
+        to: destination
+    }]
+}
+
+pub fn address_with_tokens(token_contract: ITokenizedBondDispatcher, minter: ContractAddress) -> ContractAddress {
+    let address_with_tokens = setup_receiver();
+
+    start_cheat_caller_address(token_contract.contract_address, minter);
+    let transfer = valid_transfer(from: minter, to: address_with_tokens);
+    token_contract.make_transfer(transfer);
+    address_with_tokens
+}
