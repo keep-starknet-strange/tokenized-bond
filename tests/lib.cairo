@@ -716,7 +716,6 @@ fn test_check_owner_and_operator_multiple_destinations() {
 fn test_check_owner_and_operator_empty_transfers() {
     let (tokenized_bond, _minter) = setup_contract_with_minter();
     let transfers = array![];
-    start_cheat_caller_address(tokenized_bond.contract_address, NOT_MINTER());
     assert(!tokenized_bond.check_owner_and_operator(transfers), 'Empty transfers check failed');
 }
 
