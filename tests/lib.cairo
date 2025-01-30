@@ -748,7 +748,7 @@ fn test_make_transfer_when_balance_is_insufficent() {
     let from = address_with_tokens(tokenized_bond, minter);
     let to = setup_receiver();
     let transfer = valid_transfer(from, to, AMOUNT_TRANSFERRED() + 1);
-
+    let foo = 'BOO';
     start_cheat_caller_address(tokenized_bond.contract_address, from);
     tokenized_bond.make_transfer(transfer);
 }
