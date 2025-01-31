@@ -1,11 +1,12 @@
 mod utils;
 use tokenized_bond::{TokenizedBond, ITokenizedBondDispatcher, ITokenizedBondDispatcherTrait};
-use openzeppelin_token::erc1155::interface::{IERC1155Dispatcher, IERC1155DispatcherTrait};
+use openzeppelin_security::pausable::PausableComponent;
 use openzeppelin_token::erc1155::ERC1155Component;
+use openzeppelin_token::erc1155::interface::{IERC1155Dispatcher, IERC1155DispatcherTrait};
 use tokenized_bond::utils::constants::{
     OWNER, MINTER, ZERO_ADDRESS, INTEREST_RATE, INTEREST_RATE_ZERO, MINT_AMOUNT, TOKEN_NAME,
     TOKEN_ID, TIME_IN_THE_FUTURE, CUSTODIAL_FALSE, NOT_MINTER, NEW_MINTER, AMOUNT_TRANSFERRED,
-    TRANSFER_AMOUNT,
+    TRANSFER_AMOUNT, NOT_OWNER
 };
 use snforge_std::{
     EventSpyAssertionsTrait, spy_events, start_cheat_caller_address, stop_cheat_caller_address,
@@ -13,6 +14,35 @@ use snforge_std::{
 };
 use starknet::get_block_timestamp;
 use utils::{setup, setup_receiver, setup_contract_with_minter, setup_transfer, address_with_tokens};
+
+#[test]
+fn test_pause_unpause_functionality() {
+    let mut spy = spy_events();
+    let mut tokenized_bond = ITokenizedBondDispatcher { contract_address: setup() };
+
+    let expected_pause_event = PausableComponent::Event::Paused(
+        PausableComponent::Paused {
+            account: OWNER(),
+        });
+    let expected_event_unpaused = PausableComponent::Event::Unpaused(
+        PausableComponent::Unpaused {
+            account: OWNER(),
+        });
+
+    start_cheat_caller_address(tokenized_bond.contract_address, OWNER());
+    tokenized_bond.pause();
+
+    spy.assert_emitted(@array![(tokenized_bond.contract_address, expected_pause_event), (tokenized_bond.contract_address, expected_event_unpaused)]);
+}
+
+#[test]
+#[should_panic(expected: 'Caller is not the owner')]
+fn test_pause_not_owner() {
+    let mut tokenized_bond = ITokenizedBondDispatcher { contract_address: setup() };
+
+    start_cheat_caller_address(tokenized_bond.contract_address, NOT_OWNER());
+    tokenized_bond.pause();
+}
 
 #[test]
 fn test_add_minter() {
