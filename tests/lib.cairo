@@ -6,7 +6,7 @@ use openzeppelin_token::erc1155::interface::{IERC1155Dispatcher, IERC1155Dispatc
 use tokenized_bond::utils::constants::{
     OWNER, MINTER, ZERO_ADDRESS, INTEREST_RATE, INTEREST_RATE_ZERO, MINT_AMOUNT, TOKEN_NAME,
     TOKEN_ID, TIME_IN_THE_FUTURE, CUSTODIAL_FALSE, NOT_MINTER, NEW_MINTER, AMOUNT_TRANSFERRED,
-    TRANSFER_AMOUNT, NOT_OWNER
+    TRANSFER_AMOUNT,
 };
 use snforge_std::{
     EventSpyAssertionsTrait, spy_events, start_cheat_caller_address, stop_cheat_caller_address,
@@ -21,18 +21,23 @@ fn test_pause_unpause_functionality() {
     let mut tokenized_bond = ITokenizedBondDispatcher { contract_address: setup() };
 
     let expected_pause_event = PausableComponent::Event::Paused(
-        PausableComponent::Paused {
-            account: OWNER(),
-        });
+        PausableComponent::Paused { account: OWNER() },
+    );
     let expected_event_unpaused = PausableComponent::Event::Unpaused(
-        PausableComponent::Unpaused {
-            account: OWNER(),
-        });
+        PausableComponent::Unpaused { account: OWNER() },
+    );
 
     start_cheat_caller_address(tokenized_bond.contract_address, OWNER());
     tokenized_bond.pause();
+    tokenized_bond.unpause();
 
-    spy.assert_emitted(@array![(tokenized_bond.contract_address, expected_pause_event), (tokenized_bond.contract_address, expected_event_unpaused)]);
+    spy
+        .assert_emitted(
+            @array![
+                (tokenized_bond.contract_address, expected_pause_event),
+                (tokenized_bond.contract_address, expected_event_unpaused),
+            ],
+        );
 }
 
 #[test]
@@ -40,7 +45,14 @@ fn test_pause_unpause_functionality() {
 fn test_pause_not_owner() {
     let mut tokenized_bond = ITokenizedBondDispatcher { contract_address: setup() };
 
-    start_cheat_caller_address(tokenized_bond.contract_address, NOT_OWNER());
+    tokenized_bond.pause();
+}
+
+#[test]
+#[should_panic(expected: 'Caller is not the owner')]
+fn test_unpause_not_owner() {
+    let mut tokenized_bond = ITokenizedBondDispatcher { contract_address: setup() };
+
     tokenized_bond.pause();
 }
 
