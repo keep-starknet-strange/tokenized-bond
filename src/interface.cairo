@@ -30,4 +30,10 @@ pub trait ITokenizedBond<TState> {
     fn minter_is_operator(self: @TState, token_id: u256, minter: ContractAddress) -> bool;
     fn check_owner_and_operator(self: @TState, transfers: Array<TransferParam>) -> bool;
     fn upgrade(ref self: TState, new_class_hash: ClassHash);
+    fn inter_transfer_allowed(
+        self: @TState, token_id: u256, sender: ContractAddress, receiver: ContractAddress,
+    ) -> bool;
+    fn is_inter_transfer_after_expiry(
+        self: @TState, token_id: u256, receiver: ContractAddress,
+    ) -> bool;
 }
