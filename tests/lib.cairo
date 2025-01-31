@@ -781,7 +781,7 @@ fn test_check_owner_and_operator_zero_balance() {
 }
 
 #[test]
-fn test_check_owner_operator_minter_and_operator_with_zero_balance() {
+fn test_check_owner_operator_when_caller_is_minter_and_operator_of_the_token_with_zero_balance() {
     let (tokenized_bond, minter) = setup_contract_with_minter();
     start_cheat_caller_address(tokenized_bond.contract_address, OWNER());
     tokenized_bond.set_minter_as_operator(TOKEN_ID());
@@ -799,7 +799,7 @@ fn test_check_owner_operator_minter_and_operator_with_zero_balance() {
 }
 
 #[test]
-fn test_check_owner_operator_different_from_address_is_not_caller() {
+fn test_check_owner_operator_when_from_address_is_not_caller() {
     let (tokenized_bond, minter) = setup_contract_with_minter();
 
     let different_from_address = setup_receiver();
@@ -818,7 +818,7 @@ fn test_check_owner_operator_different_from_address_is_not_caller() {
 }
 
 #[test]
-fn test_check_owner_operator_with_empty_destinations() {
+fn test_check_owner_operator_when_destinations_is_empty_array() {
     let (tokenized_bond, minter) = setup_contract_with_minter();
 
     let empty_destinations = array![];
@@ -829,7 +829,7 @@ fn test_check_owner_operator_with_empty_destinations() {
 }
 
 #[test]
-fn test_check_owner_operator_for_operator_with_balance() {
+fn test_check_owner_operator_when_caller_is_not_minter_and_operator_has_balance_greater_than_zero() {
     let (tokenized_bond, minter) = setup_contract_with_minter();
     let non_minter = setup_receiver();
     let erc_1155 = IERC1155Dispatcher { contract_address: tokenized_bond.contract_address };
