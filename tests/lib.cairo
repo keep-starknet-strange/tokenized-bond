@@ -499,6 +499,9 @@ fn test_unfreeze_token_success() {
 
     start_cheat_caller_address(tokenized_bond.contract_address, OWNER());
     tokenized_bond.freeze_token(TOKEN_ID());
+    tokenized_bond.unfreeze_token(TOKEN_ID());
+
+    tokenized_bond.freeze_token(TOKEN_ID());
 }
 
 #[test]
