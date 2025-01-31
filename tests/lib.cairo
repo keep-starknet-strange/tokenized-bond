@@ -1,4 +1,5 @@
 mod utils;
+use starknet::class_hash::class_hash_const;
 use tokenized_bond::{TokenizedBond, ITokenizedBondDispatcher, ITokenizedBondDispatcherTrait};
 use openzeppelin_upgrades::upgradeable::UpgradeableComponent;
 use openzeppelin_security::pausable::PausableComponent;
@@ -7,7 +8,7 @@ use openzeppelin_token::erc1155::interface::{IERC1155Dispatcher, IERC1155Dispatc
 use tokenized_bond::utils::constants::{
     OWNER, MINTER, ZERO_ADDRESS, INTEREST_RATE, INTEREST_RATE_ZERO, MINT_AMOUNT, TOKEN_NAME,
     TOKEN_ID, TIME_IN_THE_FUTURE, CUSTODIAL_FALSE, NOT_MINTER, NEW_MINTER, AMOUNT_TRANSFERRED,
-    TRANSFER_AMOUNT, CLASS_HASH_UPGRADE,
+    TRANSFER_AMOUNT,
 };
 use snforge_std::{
     EventSpyAssertionsTrait, spy_events, start_cheat_caller_address, stop_cheat_caller_address,
@@ -948,5 +949,5 @@ fn test_upgrade_success() {
 #[should_panic(expected: 'Caller is not the owner')]
 fn test_upgrade_not_owner() {
     let (tokenized_bond, _minter) = setup_contract_with_minter();
-    tokenized_bond.upgrade(CLASS_HASH_UPGRADE());
+    tokenized_bond.upgrade(class_hash_const::<'UPGRADE'>());
 }
