@@ -1,6 +1,6 @@
 use tokenized_bond::utils::constants::{
     OWNER, TOKEN_URI, TIME_IN_THE_FUTURE, INTEREST_RATE, TOKEN_ID, MINT_AMOUNT, CUSTODIAL_FALSE,
-    TOKEN_NAME, AMOUNT_TRANSFERRED
+    TOKEN_NAME, AMOUNT_TRANSFERRED,
 };
 use tokenized_bond::{TokenizedBond, ITokenizedBondDispatcher, ITokenizedBondDispatcherTrait};
 use snforge_std::{declare, ContractClassTrait, DeclareResultTrait, start_cheat_caller_address};
