@@ -503,6 +503,7 @@ fn test_pause_itr_after_expiry() {
     spy.assert_emitted(@array![(tokenized_bond.contract_address, expected_tokenized_bond_event)]);
 }
 
+#[test]
 fn test_freeze_token_success() {
     let mut tokenized_bond = ITokenizedBondDispatcher { contract_address: setup() };
     let minter = setup_receiver();
@@ -955,4 +956,113 @@ fn test_upgrade_success() {
 fn test_upgrade_not_owner() {
     let (tokenized_bond, _minter) = setup_contract_with_minter();
     tokenized_bond.upgrade(class_hash_const::<'UPGRADE'>());
+}
+
+#[test]
+fn test_inter_transfer_allowed_when_not_paused() {
+    let (tokenized_bond, _minter) = setup_contract_with_minter();
+    let receiver = setup_receiver();
+    assert(
+        tokenized_bond.inter_transfer_allowed(TOKEN_ID(), NOT_MINTER(), receiver),
+        'Should allow when not paused',
+    );
+}
+
+#[test]
+fn test_inter_transfer_allowed_when_paused_but_minter_is_sender() {
+    let (tokenized_bond, minter) = setup_contract_with_minter();
+    let receiver = setup_receiver();
+
+    start_cheat_caller_address(tokenized_bond.contract_address, OWNER());
+    tokenized_bond.pause_inter_transfer(TOKEN_ID());
+
+    assert(
+        tokenized_bond.inter_transfer_allowed(TOKEN_ID(), minter, receiver),
+        'Allow when minter is sender',
+    );
+}
+
+#[test]
+fn test_inter_transfer_allowed_when_paused_but_minter_is_receiver() {
+    let (tokenized_bond, minter) = setup_contract_with_minter();
+    let sender = setup_receiver();
+
+    start_cheat_caller_address(tokenized_bond.contract_address, OWNER());
+    tokenized_bond.pause_inter_transfer(TOKEN_ID());
+
+    assert(
+        tokenized_bond.inter_transfer_allowed(TOKEN_ID(), sender, minter),
+        'Allow when minter is receiver',
+    );
+}
+
+#[test]
+fn test_inter_transfer_allowed_when_paused_and_no_minter_involved() {
+    let (tokenized_bond, _minter) = setup_contract_with_minter();
+    let sender = setup_receiver();
+    let receiver = setup_receiver();
+
+    start_cheat_caller_address(tokenized_bond.contract_address, OWNER());
+    tokenized_bond.pause_inter_transfer(TOKEN_ID());
+
+    assert(
+        !tokenized_bond.inter_transfer_allowed(TOKEN_ID(), sender, receiver),
+        'Fail when paused without minter',
+    );
+}
+
+#[test]
+fn test_is_inter_transfer_after_expiry_when_not_paused() {
+    let (tokenized_bond, _minter) = setup_contract_with_minter();
+    let receiver = setup_receiver();
+
+    assert(
+        tokenized_bond.is_inter_transfer_after_expiry(TOKEN_ID(), receiver),
+        'Should allow when not paused',
+    );
+}
+
+#[test]
+fn test_is_inter_transfer_after_expiry_when_paused_but_not_expired() {
+    let (tokenized_bond, _minter) = setup_contract_with_minter();
+    let receiver = setup_receiver();
+
+    start_cheat_caller_address(tokenized_bond.contract_address, OWNER());
+    tokenized_bond.pause_itr_after_expiry(TOKEN_ID());
+
+    assert(
+        tokenized_bond.is_inter_transfer_after_expiry(TOKEN_ID(), receiver),
+        'Should allow when not expired',
+    );
+}
+
+#[test]
+fn test_is_inter_transfer_after_expiry_when_paused_expired_but_receiver_is_minter() {
+    let (tokenized_bond, minter) = setup_contract_with_minter();
+
+    start_cheat_caller_address(tokenized_bond.contract_address, OWNER());
+    tokenized_bond.pause_itr_after_expiry(TOKEN_ID());
+
+    start_cheat_block_timestamp_global(TIME_IN_THE_FUTURE() + 1);
+
+    assert(
+        tokenized_bond.is_inter_transfer_after_expiry(TOKEN_ID(), minter),
+        'Allow when receiver is minter',
+    );
+}
+
+#[test]
+fn test_is_inter_transfer_after_expiry_when_paused_expired_and_not_minter() {
+    let (tokenized_bond, _minter) = setup_contract_with_minter();
+    let receiver = setup_receiver();
+
+    start_cheat_caller_address(tokenized_bond.contract_address, OWNER());
+    tokenized_bond.pause_itr_after_expiry(TOKEN_ID());
+
+    start_cheat_block_timestamp_global(TIME_IN_THE_FUTURE() + 1);
+
+    assert(
+        !tokenized_bond.is_inter_transfer_after_expiry(TOKEN_ID(), receiver),
+        'Fail expired without minter',
+    );
 }

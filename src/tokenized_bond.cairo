@@ -176,6 +176,35 @@ pub mod TokenizedBond {
             self.pausable.unpause();
         }
 
+        fn inter_transfer_allowed(
+            self: @ContractState,
+            token_id: u256,
+            sender: ContractAddress,
+            receiver: ContractAddress,
+        ) -> bool {
+            if !self.tokens.entry(token_id).read().token_itr_paused {
+                return true;
+            }
+            if (self.tokens.entry(token_id).read().minter == sender
+                || self.tokens.entry(token_id).read().minter == receiver) {
+                return true;
+            }
+            return false;
+        }
+
+        fn is_inter_transfer_after_expiry(
+            self: @ContractState, token_id: u256, receiver: ContractAddress,
+        ) -> bool {
+            if !self.tokens.entry(token_id).read().token_itr_expiry_paused {
+                return true;
+            }
+            if self.tokens.entry(token_id).read().expiration_date > get_block_timestamp()
+                || self.tokens.entry(token_id).read().minter == receiver {
+                return true;
+            }
+            return false;
+        }
+
         fn resume_inter_transfer(ref self: ContractState, token_id: u256) {
             self.ownable.assert_only_owner();
             assert(self.tokens.entry(token_id).read().token_itr_paused, Errors::TOKEN_IS_PAUSED);
@@ -477,35 +506,6 @@ pub mod TokenizedBond {
                 self.tokens.entry(token_id).read().minter != ZERO_ADDRESS(),
                 Errors::TOKEN_DOES_NOT_EXIST,
             );
-        }
-
-        fn inter_transfer_allowed(
-            self: @ContractState,
-            token_id: u256,
-            sender: ContractAddress,
-            receiver: ContractAddress,
-        ) -> bool {
-            if !self.tokens.entry(token_id).read().token_itr_paused {
-                return true;
-            }
-            if (self.tokens.entry(token_id).read().minter == sender
-                || self.tokens.entry(token_id).read().minter == receiver) {
-                return true;
-            }
-            return false;
-        }
-
-        fn is_inter_transfer_after_expiry(
-            self: @ContractState, token_id: u256, receiever: ContractAddress,
-        ) -> bool {
-            if !self.tokens.entry(token_id).read().token_itr_expiry_paused {
-                return true;
-            }
-            if self.tokens.entry(token_id).read().expiration_date > get_block_timestamp()
-                || self.tokens.entry(token_id).read().minter == receiever {
-                return true;
-            }
-            return false;
         }
     }
 }
