@@ -662,3 +662,192 @@ fn test_minter_is_operator_check() {
         !tokenized_bond.minter_is_operator(TOKEN_ID(), NOT_MINTER()), 'Non-minter not be operator',
     );
 }
+
+#[test]
+fn test_check_owner_and_operator_success() {
+    let (tokenized_bond, minter) = setup_contract_with_minter();
+    start_cheat_caller_address(tokenized_bond.contract_address, minter);
+
+    let transfer_destination = array![
+        TokenizedBond::TransferDestination {
+            receiver: OWNER(), amount: TRANSFER_AMOUNT(), token_id: TOKEN_ID(),
+        },
+    ];
+
+    let transfers = array![TokenizedBond::TransferParam { from: minter, to: transfer_destination }];
+
+    assert(tokenized_bond.check_owner_and_operator(transfers.clone()), 'Owner check should pass');
+    start_cheat_caller_address(tokenized_bond.contract_address, OWNER());
+    tokenized_bond.set_minter_as_operator(TOKEN_ID());
+
+    start_cheat_caller_address(tokenized_bond.contract_address, minter);
+    assert(
+        tokenized_bond.check_owner_and_operator(transfers.clone()), 'Operator check should pass',
+    );
+}
+
+#[test]
+fn test_check_owner_and_operator_multiple_destinations() {
+    let (tokenized_bond, minter) = setup_contract_with_minter();
+    let receiver1 = setup_receiver();
+    let receiver2 = setup_receiver();
+
+    let multiple_destinations = array![
+        TokenizedBond::TransferDestination {
+            receiver: receiver1, amount: TRANSFER_AMOUNT(), token_id: TOKEN_ID(),
+        },
+        TokenizedBond::TransferDestination {
+            receiver: receiver2, amount: TRANSFER_AMOUNT(), token_id: TOKEN_ID(),
+        },
+    ];
+
+    let transfer_with_multiple_destinations = array![
+        TokenizedBond::TransferParam { from: minter, to: multiple_destinations },
+    ];
+
+    start_cheat_caller_address(tokenized_bond.contract_address, minter);
+    assert(
+        tokenized_bond.check_owner_and_operator(transfer_with_multiple_destinations),
+        'Failed for multiple destination',
+    );
+}
+
+#[test]
+fn test_check_owner_and_operator_empty_transfers() {
+    let (tokenized_bond, _minter) = setup_contract_with_minter();
+    let transfers = array![];
+    assert(!tokenized_bond.check_owner_and_operator(transfers), 'Empty transfers check failed');
+}
+
+#[test]
+fn test_check_owner_and_operator_as_token_owner() {
+    let (tokenized_bond, minter) = setup_contract_with_minter();
+    let receiver1 = setup_receiver();
+
+    let transfer_destination = array![
+        TokenizedBond::TransferDestination {
+            receiver: receiver1, amount: TRANSFER_AMOUNT(), token_id: TOKEN_ID(),
+        },
+    ];
+
+    let transfers = array![TokenizedBond::TransferParam { from: minter, to: transfer_destination }];
+
+    start_cheat_caller_address(tokenized_bond.contract_address, minter);
+    assert(tokenized_bond.check_owner_and_operator(transfers), 'Should pass as token owner');
+}
+
+#[test]
+fn test_check_owner_and_operator_as_operator() {
+    let (tokenized_bond, minter) = setup_contract_with_minter();
+    let receiver1 = setup_receiver();
+
+    let transfer_destination = array![
+        TokenizedBond::TransferDestination {
+            receiver: receiver1, amount: TRANSFER_AMOUNT(), token_id: TOKEN_ID(),
+        },
+    ];
+
+    let transfers = array![TokenizedBond::TransferParam { from: minter, to: transfer_destination }];
+
+    start_cheat_caller_address(tokenized_bond.contract_address, OWNER());
+    tokenized_bond.set_minter_as_operator(TOKEN_ID());
+
+    start_cheat_caller_address(tokenized_bond.contract_address, minter);
+    assert(tokenized_bond.check_owner_and_operator(transfers), 'Should pass as operator');
+}
+
+#[test]
+fn test_check_owner_and_operator_zero_balance() {
+    let mut tokenized_bond = ITokenizedBondDispatcher { contract_address: setup() };
+    let minter = setup_receiver();
+    let receiver1 = setup_receiver();
+    start_cheat_caller_address(tokenized_bond.contract_address, OWNER());
+    tokenized_bond.add_minter(minter);
+
+    start_cheat_caller_address(tokenized_bond.contract_address, minter);
+
+    let zero_balance_destination = array![
+        TokenizedBond::TransferDestination {
+            receiver: receiver1, amount: TRANSFER_AMOUNT(), token_id: TOKEN_ID(),
+        },
+    ];
+
+    let zero_balance_transfers = array![
+        TokenizedBond::TransferParam { from: minter, to: zero_balance_destination },
+    ];
+
+    let result = tokenized_bond.check_owner_and_operator(zero_balance_transfers);
+    assert(!result, 'Return false for zero balance');
+}
+
+#[test]
+fn test_check_owner_operator_minter_and_operator_with_zero_balance() {
+    let (tokenized_bond, minter) = setup_contract_with_minter();
+    start_cheat_caller_address(tokenized_bond.contract_address, OWNER());
+    tokenized_bond.set_minter_as_operator(TOKEN_ID());
+
+    let transfer_destination = array![
+        TokenizedBond::TransferDestination {
+            receiver: OWNER(), amount: TRANSFER_AMOUNT(), token_id: TOKEN_ID(),
+        },
+    ];
+
+    let transfers = array![TokenizedBond::TransferParam { from: minter, to: transfer_destination }];
+
+    start_cheat_caller_address(tokenized_bond.contract_address, minter);
+    assert(tokenized_bond.check_owner_and_operator(transfers), 'Should fail with zero balance');
+}
+
+#[test]
+fn test_check_owner_operator_different_from_address_is_not_caller() {
+    let (tokenized_bond, minter) = setup_contract_with_minter();
+
+    let different_from_address = setup_receiver();
+    let transfer_destination = array![
+        TokenizedBond::TransferDestination {
+            receiver: OWNER(), amount: TRANSFER_AMOUNT(), token_id: TOKEN_ID(),
+        },
+    ];
+
+    let transfers = array![
+        TokenizedBond::TransferParam { from: different_from_address, to: transfer_destination },
+    ];
+
+    start_cheat_caller_address(tokenized_bond.contract_address, minter);
+    assert(!tokenized_bond.check_owner_and_operator(transfers), 'Fail for different from address');
+}
+
+#[test]
+fn test_check_owner_operator_with_empty_destinations() {
+    let (tokenized_bond, minter) = setup_contract_with_minter();
+
+    let empty_destinations = array![];
+    let transfers = array![TokenizedBond::TransferParam { from: minter, to: empty_destinations }];
+
+    start_cheat_caller_address(tokenized_bond.contract_address, minter);
+    assert(!tokenized_bond.check_owner_and_operator(transfers), 'fail for empty destinations');
+}
+
+#[test]
+fn test_check_owner_operator_for_operator_with_balance() {
+    let (tokenized_bond, minter) = setup_contract_with_minter();
+    let non_minter = setup_receiver();
+    let erc_1155 = IERC1155Dispatcher { contract_address: tokenized_bond.contract_address };
+
+    start_cheat_caller_address(tokenized_bond.contract_address, minter);
+    erc_1155.safe_transfer_from(minter, non_minter, TOKEN_ID(), TRANSFER_AMOUNT(), array![].span());
+
+    let transfer_destination = array![
+        TokenizedBond::TransferDestination {
+            receiver: OWNER(), amount: TRANSFER_AMOUNT(), token_id: TOKEN_ID(),
+        },
+    ];
+
+    let transfers = array![
+        TokenizedBond::TransferParam { from: non_minter, to: transfer_destination },
+    ];
+
+    start_cheat_caller_address(tokenized_bond.contract_address, non_minter);
+
+    assert(tokenized_bond.check_owner_and_operator(transfers), 'Should pass with balance');
+}
