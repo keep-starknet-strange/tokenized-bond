@@ -167,6 +167,16 @@ pub mod TokenizedBond {
 
     #[abi(embed_v0)]
     impl TokenizedBond of ITokenizedBond<ContractState> {
+        fn pause(ref self: ContractState) {
+            self.ownable.assert_only_owner();
+            self.pausable.pause();
+        }
+
+        fn unpause(ref self: ContractState) {
+            self.ownable.assert_only_owner();
+            self.pausable.unpause();
+        }
+
         fn resume_inter_transfer(ref self: ContractState, token_id: u256) {
             self.ownable.assert_only_owner();
             assert(self.tokens.entry(token_id).read().token_itr_paused, Errors::TOKEN_IS_PAUSED);
