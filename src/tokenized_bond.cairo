@@ -449,56 +449,6 @@ pub mod TokenizedBond {
         }
     }
 
-    #[generate_trait]
-    #[abi(per_item)]
-    impl ExternalImpl of ExternalTrait {
-        #[external(v0)]
-        fn pause(ref self: ContractState) {
-            self.ownable.assert_only_owner();
-            self.pausable.pause();
-        }
-
-        #[external(v0)]
-        fn unpause(ref self: ContractState) {
-            self.ownable.assert_only_owner();
-            self.pausable.unpause();
-        }
-
-        #[external(v0)]
-        fn batch_mint(
-            ref self: ContractState,
-            account: ContractAddress,
-            token_ids: Span<u256>,
-            values: Span<u256>,
-            data: Span<felt252>,
-        ) {
-            self.ownable.assert_only_owner();
-            self.erc1155.batch_mint_with_acceptance_check(account, token_ids, values, data);
-        }
-
-        #[external(v0)]
-        fn batchMint(
-            ref self: ContractState,
-            account: ContractAddress,
-            tokenIds: Span<u256>,
-            values: Span<u256>,
-            data: Span<felt252>,
-        ) {
-            self.batch_mint(account, tokenIds, values, data);
-        }
-
-        #[external(v0)]
-        fn set_base_uri(ref self: ContractState, base_uri: ByteArray) {
-            self.ownable.assert_only_owner();
-            self.erc1155._set_base_uri(base_uri);
-        }
-
-        #[external(v0)]
-        fn setBaseUri(ref self: ContractState, baseUri: ByteArray) {
-            self.set_base_uri(baseUri);
-        }
-    }
-
     #[abi(embed_v0)]
     impl UpgradeableImpl of IUpgradeable<ContractState> {
         fn upgrade(ref self: ContractState, new_class_hash: ClassHash) {
