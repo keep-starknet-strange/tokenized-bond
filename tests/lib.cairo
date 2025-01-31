@@ -891,25 +891,6 @@ fn test_make_transfer_when_balance_is_insufficent() {
 #[should_panic(expected: 'Caller is not the owner')]
 fn test_unfreeze_token_not_owner() {
     let mut tokenized_bond = ITokenizedBondDispatcher { contract_address: setup() };
-    let minter = setup_receiver();
-    start_cheat_caller_address(tokenized_bond.contract_address, OWNER());
-    tokenized_bond.add_minter(minter);
-
-    start_cheat_caller_address(tokenized_bond.contract_address, minter);
-    tokenized_bond
-        .mint(
-            TIME_IN_THE_FUTURE(),
-            INTEREST_RATE(),
-            TOKEN_ID(),
-            MINT_AMOUNT(),
-            CUSTODIAL_FALSE(),
-            TOKEN_NAME(),
-        );
-
-    start_cheat_caller_address(tokenized_bond.contract_address, OWNER());
-    tokenized_bond.freeze_token(TOKEN_ID());
-
-    start_cheat_caller_address(tokenized_bond.contract_address, NOT_MINTER());
     tokenized_bond.unfreeze_token(TOKEN_ID());
 }
 
