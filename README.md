@@ -147,4 +147,7 @@ scripts/sepolia_deploy.sh
  scripts/sepolia_mint.sh
  ```
 
+```
+ scripts/sepolia_make_transfer.sh
+```
  [Example Contract Here](https://sepolia.starkscan.co/contract/0x06fe30af6948d662dffb58d0ba31b877721e346127cb6253b69cf7ec45aa4df5)

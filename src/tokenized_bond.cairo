@@ -1,5 +1,6 @@
 #[starknet::contract]
 pub mod TokenizedBond {
+    use openzeppelin_token::erc1155::interface::ERC1155ABI;
     use tokenized_bond::ITokenizedBond;
     use tokenized_bond::utils::constants::ZERO_ADDRESS;
     use openzeppelin_access::ownable::OwnableComponent;

@@ -40,6 +40,10 @@ pub fn AMOUNT_TRANSFERRED() -> u256 {
     10
 }
 
+pub fn TRANSFER_AMOUNT() -> u256 {
+    42
+}
+
 pub fn TOKEN_ID() -> u256 {
     42
 }

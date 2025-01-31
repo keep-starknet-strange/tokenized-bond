@@ -4,7 +4,7 @@ use openzeppelin_token::erc1155::interface::{IERC1155Dispatcher, IERC1155Dispatc
 use openzeppelin_token::erc1155::ERC1155Component;
 use tokenized_bond::utils::constants::{
     OWNER, MINTER, ZERO_ADDRESS, INTEREST_RATE, INTEREST_RATE_ZERO, MINT_AMOUNT, TOKEN_NAME,
-    TOKEN_ID, TIME_IN_THE_FUTURE, CUSTODIAL_FALSE, NOT_MINTER, NEW_MINTER, AMOUNT_TRANSFERRED,
+    TOKEN_ID, TIME_IN_THE_FUTURE, CUSTODIAL_FALSE, NOT_MINTER, NEW_MINTER, AMOUNT_TRANSFERRED, TRANSFER_AMOUNT,
 };
 use snforge_std::{
     EventSpyAssertionsTrait, spy_events, start_cheat_caller_address, stop_cheat_caller_address,
