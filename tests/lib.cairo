@@ -6,7 +6,7 @@ use openzeppelin_token::erc1155::ERC1155Component;
 use tokenized_bond::utils::constants::{
     OWNER, MINTER, ZERO_ADDRESS, INTEREST_RATE, INTEREST_RATE_ZERO, MINT_AMOUNT, TOKEN_NAME,
     TOKEN_ID, TIME_IN_THE_FUTURE, CUSTODIAL_FALSE, NOT_MINTER, NEW_MINTER, AMOUNT_TRANSFERRED,
-    TRANSFER_AMOUNT,
+    TRANSFER_AMOUNT, CLASS_HASH_UPGRADE
 };
 use snforge_std::{
     EventSpyAssertionsTrait, spy_events, start_cheat_caller_address, stop_cheat_caller_address,
@@ -900,4 +900,11 @@ fn test_upgrade_success() {
         UpgradeableComponent::Upgraded { class_hash: upgrade_class_hash },
     );
     spy.assert_emitted(@array![(tokenized_bond.contract_address, expected_event)]);
+}
+
+#[test]
+#[should_panic(expected: 'Caller is not the owner')]
+fn test_upgrade_not_owner() {
+    let (tokenized_bond, _minter) = setup_contract_with_minter();
+    tokenized_bond.upgrade(CLASS_HASH_UPGRADE());
 }
