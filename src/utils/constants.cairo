@@ -1,4 +1,5 @@
-use starknet::{ContractAddress, contract_address_const, get_block_timestamp};
+use starknet::{ContractAddress, ClassHash, contract_address_const, get_block_timestamp};
+use starknet::class_hash::class_hash_const;
 
 pub fn OWNER() -> ContractAddress {
     contract_address_const::<'OWNER'>()
@@ -14,6 +15,10 @@ pub fn NEW_MINTER() -> ContractAddress {
 
 pub fn NOT_MINTER() -> ContractAddress {
     contract_address_const::<'NOT_MINTER'>()
+}
+
+pub fn CLASS_HASH_UPGRADE() -> ClassHash {
+    class_hash_const::<'UPGRADE'>()
 }
 
 pub fn CUSTODIAL_FALSE() -> bool {

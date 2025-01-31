@@ -1,5 +1,6 @@
 mod utils;
 use tokenized_bond::{TokenizedBond, ITokenizedBondDispatcher, ITokenizedBondDispatcherTrait};
+use openzeppelin_upgrades::upgradeable::UpgradeableComponent;
 use openzeppelin_token::erc1155::interface::{IERC1155Dispatcher, IERC1155DispatcherTrait};
 use openzeppelin_token::erc1155::ERC1155Component;
 use tokenized_bond::utils::constants::{
@@ -12,7 +13,10 @@ use snforge_std::{
     start_cheat_block_timestamp_global, stop_cheat_block_timestamp_global,
 };
 use starknet::get_block_timestamp;
-use utils::{setup, setup_receiver, setup_contract_with_minter, setup_transfer, address_with_tokens};
+use utils::{
+    setup, setup_receiver, setup_contract_with_minter, setup_transfer, address_with_tokens,
+    upgrade_class_hash,
+};
 
 #[test]
 fn test_add_minter() {
@@ -882,4 +886,18 @@ fn test_make_transfer_when_balance_is_insufficent() {
 
     start_cheat_caller_address(tokenized_bond.contract_address, from);
     tokenized_bond.make_transfer(transfer);
+}
+
+#[test]
+fn test_upgrade_success() {
+    let mut spy = spy_events();
+    let (tokenized_bond, _minter) = setup_contract_with_minter();
+    let upgrade_class_hash = upgrade_class_hash();
+    start_cheat_caller_address(tokenized_bond.contract_address, OWNER());
+    tokenized_bond.upgrade(upgrade_class_hash);
+
+    let expected_event = UpgradeableComponent::Event::Upgraded(
+        UpgradeableComponent::Upgraded { class_hash: upgrade_class_hash },
+    );
+    spy.assert_emitted(@array![(tokenized_bond.contract_address, expected_event)]);
 }

@@ -1,4 +1,4 @@
-use starknet::ContractAddress;
+use starknet::{ContractAddress, ClassHash};
 use tokenized_bond::TokenizedBond::TransferParam;
 
 #[starknet::interface]
@@ -27,4 +27,5 @@ pub trait ITokenizedBond<TState> {
     fn unset_minter_as_operator(ref self: TState, token_id: u256);
     fn minter_is_operator(self: @TState, token_id: u256, minter: ContractAddress) -> bool;
     fn check_owner_and_operator(self: @TState, transfers: Array<TransferParam>) -> bool;
+    fn upgrade(ref self: TState, new_class_hash: ClassHash);
 }

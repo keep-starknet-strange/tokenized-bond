@@ -7,7 +7,6 @@ pub mod TokenizedBond {
     use openzeppelin_introspection::src5::SRC5Component;
     use openzeppelin_security::pausable::PausableComponent;
     use openzeppelin_token::erc1155::ERC1155Component;
-    use openzeppelin_upgrades::interface::IUpgradeable;
     use openzeppelin_upgrades::UpgradeableComponent;
     use starknet::{ClassHash, ContractAddress, get_block_timestamp, get_caller_address};
     use starknet::storage::{StoragePointerWriteAccess, StoragePathEntry, Map, Vec, MutableVecTrait};
@@ -433,6 +432,11 @@ pub mod TokenizedBond {
                 }
             }
         }
+
+        fn upgrade(ref self: ContractState, new_class_hash: ClassHash) {
+            self.ownable.assert_only_owner();
+            self.upgradeable.upgrade(new_class_hash);
+        }
     }
 
 
@@ -496,14 +500,6 @@ pub mod TokenizedBond {
         #[external(v0)]
         fn setBaseUri(ref self: ContractState, baseUri: ByteArray) {
             self.set_base_uri(baseUri);
-        }
-    }
-
-    #[abi(embed_v0)]
-    impl UpgradeableImpl of IUpgradeable<ContractState> {
-        fn upgrade(ref self: ContractState, new_class_hash: ClassHash) {
-            self.ownable.assert_only_owner();
-            self.upgradeable.upgrade(new_class_hash);
         }
     }
 

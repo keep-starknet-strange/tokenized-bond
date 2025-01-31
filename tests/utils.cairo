@@ -3,8 +3,10 @@ use tokenized_bond::utils::constants::{
     TOKEN_NAME, AMOUNT_TRANSFERRED,
 };
 use tokenized_bond::{TokenizedBond, ITokenizedBondDispatcher, ITokenizedBondDispatcherTrait};
-use snforge_std::{declare, ContractClassTrait, DeclareResultTrait, start_cheat_caller_address};
-use starknet::{ContractAddress};
+use snforge_std::{
+    declare, get_class_hash, ContractClassTrait, DeclareResultTrait, start_cheat_caller_address,
+};
+use starknet::{ContractAddress, ClassHash};
 
 pub trait SerializedAppend<T> {
     fn append_serde(ref self: Array<felt252>, value: T);
@@ -14,6 +16,10 @@ impl SerializedAppendImpl<T, impl TSerde: Serde<T>, impl TDrop: Drop<T>> of Seri
     fn append_serde(ref self: Array<felt252>, value: T) {
         value.serialize(ref self);
     }
+}
+
+pub fn upgrade_class_hash() -> ClassHash {
+    get_class_hash(setup_receiver())
 }
 
 pub fn declare_deploy(contract_name: ByteArray, calldata: Array<felt252>) -> ContractAddress {
