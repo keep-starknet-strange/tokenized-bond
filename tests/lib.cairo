@@ -1,6 +1,7 @@
 mod utils;
 use starknet::class_hash::class_hash_const;
 use tokenized_bond::{TokenizedBond, ITokenizedBondDispatcher, ITokenizedBondDispatcherTrait};
+use crate::TokenizedBond::InternalImpl;
 use openzeppelin_access::ownable::OwnableComponent;
 use openzeppelin_access::ownable::interface::{
     IOwnableTwoStepDispatcher, IOwnableTwoStepDispatcherTrait,
@@ -992,4 +993,12 @@ fn test_tokenized_bond_transfer_ownership_not_owner() {
 
     ownable.transfer_ownership(NEW_OWNER());
     assert(ownable.owner() == NEW_OWNER().into(), 'transfer owner failed');
+}
+
+#[test]
+fn test_internal () {
+    let state = TokenizedBond::contract_state_for_testing();
+
+    state.only_token_minter(TOKEN_ID());
+    
 }
