@@ -36,7 +36,6 @@ pub fn setup() -> ContractAddress {
 }
 
 pub fn setup_receiver() -> ContractAddress {
-    // let state = COMPONENT_STATE();
     let mut calldata: Array<felt252> = array![];
 
     declare_deploy("MockERC1155Receiver", calldata)
