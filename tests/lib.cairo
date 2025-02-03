@@ -959,110 +959,96 @@ fn test_upgrade_not_owner() {
 }
 
 #[test]
-fn test_inter_transfer_allowed_when_not_paused() {
-    let (tokenized_bond, _minter) = setup_contract_with_minter();
-    let receiver = setup_receiver();
-    assert(
-        tokenized_bond.inter_transfer_allowed(TOKEN_ID(), NOT_MINTER(), receiver),
-        'Should allow when not paused',
-    );
-}
-
-#[test]
-fn test_inter_transfer_allowed_when_paused_but_minter_is_sender() {
+fn test_make_transfer_with_inter_transfer_not_paused() {
     let (tokenized_bond, minter) = setup_contract_with_minter();
     let receiver = setup_receiver();
+    let transfer = setup_transfer(from: minter, to: receiver, amount: AMOUNT_TRANSFERRED());
 
-    start_cheat_caller_address(tokenized_bond.contract_address, OWNER());
-    tokenized_bond.pause_inter_transfer(TOKEN_ID());
-
-    assert(
-        tokenized_bond.inter_transfer_allowed(TOKEN_ID(), minter, receiver),
-        'Allow when minter is sender',
-    );
+    start_cheat_caller_address(tokenized_bond.contract_address, minter);
+    tokenized_bond.make_transfer(transfer);
 }
 
+
 #[test]
-fn test_inter_transfer_allowed_when_paused_but_minter_is_receiver() {
+#[should_panic(expected: 'Token ITR is paused')]
+fn test_make_transfer_when_paused_neither_minter() {
     let (tokenized_bond, minter) = setup_contract_with_minter();
-    let sender = setup_receiver();
+    let from = address_with_tokens(tokenized_bond, minter);
+    let to = setup_receiver();
+    let transfer = setup_transfer(from, to, AMOUNT_TRANSFERRED());
 
     start_cheat_caller_address(tokenized_bond.contract_address, OWNER());
     tokenized_bond.pause_inter_transfer(TOKEN_ID());
 
-    assert(
-        tokenized_bond.inter_transfer_allowed(TOKEN_ID(), sender, minter),
-        'Allow when minter is receiver',
-    );
+    start_cheat_caller_address(tokenized_bond.contract_address, from);
+    tokenized_bond.make_transfer(transfer);
 }
 
 #[test]
-fn test_inter_transfer_allowed_when_paused_and_no_minter_involved() {
-    let (tokenized_bond, _minter) = setup_contract_with_minter();
-    let sender = setup_receiver();
+fn test_make_transfer_when_paused_sender_is_minter() {
+    let (tokenized_bond, minter) = setup_contract_with_minter();
     let receiver = setup_receiver();
+    let transfer = setup_transfer(from: minter, to: receiver, amount: AMOUNT_TRANSFERRED());
 
     start_cheat_caller_address(tokenized_bond.contract_address, OWNER());
     tokenized_bond.pause_inter_transfer(TOKEN_ID());
 
-    assert(
-        !tokenized_bond.inter_transfer_allowed(TOKEN_ID(), sender, receiver),
-        'Fail when paused without minter',
-    );
+    start_cheat_caller_address(tokenized_bond.contract_address, minter);
+    tokenized_bond.make_transfer(transfer);
 }
 
 #[test]
-fn test_is_inter_transfer_after_expiry_when_not_paused() {
-    let (tokenized_bond, _minter) = setup_contract_with_minter();
-    let receiver = setup_receiver();
+fn test_make_transfer_when_paused_receiver_is_minter() {
+    let (tokenized_bond, minter) = setup_contract_with_minter();
+    let from = address_with_tokens(tokenized_bond, minter);
+    let transfer = setup_transfer(from: from, to: minter, amount: AMOUNT_TRANSFERRED());
 
-    assert(
-        tokenized_bond.is_inter_transfer_after_expiry(TOKEN_ID(), receiver),
-        'Should allow when not paused',
-    );
+    start_cheat_caller_address(tokenized_bond.contract_address, OWNER());
+    tokenized_bond.pause_inter_transfer(TOKEN_ID());
+
+    start_cheat_caller_address(tokenized_bond.contract_address, from);
+    tokenized_bond.make_transfer(transfer);
 }
 
 #[test]
-fn test_is_inter_transfer_after_expiry_when_paused_but_not_expired() {
-    let (tokenized_bond, _minter) = setup_contract_with_minter();
+fn test_make_transfer_before_expiry_when_expiry_paused() {
+    let (tokenized_bond, minter) = setup_contract_with_minter();
     let receiver = setup_receiver();
+    let transfer = setup_transfer(from: minter, to: receiver, amount: AMOUNT_TRANSFERRED());
 
     start_cheat_caller_address(tokenized_bond.contract_address, OWNER());
     tokenized_bond.pause_itr_after_expiry(TOKEN_ID());
 
-    assert(
-        tokenized_bond.is_inter_transfer_after_expiry(TOKEN_ID(), receiver),
-        'Should allow when not expired',
-    );
+    start_cheat_caller_address(tokenized_bond.contract_address, minter);
+    tokenized_bond.make_transfer(transfer);
 }
 
 #[test]
-fn test_is_inter_transfer_after_expiry_when_paused_expired_but_receiver_is_minter() {
+#[should_panic(expected: 'Inter after expiry is paused')]
+fn test_make_transfer_after_expiry_when_paused_not_to_minter() {
     let (tokenized_bond, minter) = setup_contract_with_minter();
+    let from = address_with_tokens(tokenized_bond, minter);
+    let receiver = setup_receiver();
+    let transfer = setup_transfer(from: from, to: receiver, amount: AMOUNT_TRANSFERRED());
 
     start_cheat_caller_address(tokenized_bond.contract_address, OWNER());
     tokenized_bond.pause_itr_after_expiry(TOKEN_ID());
 
     start_cheat_block_timestamp_global(TIME_IN_THE_FUTURE() + 1);
-
-    assert(
-        tokenized_bond.is_inter_transfer_after_expiry(TOKEN_ID(), minter),
-        'Allow when receiver is minter',
-    );
+    start_cheat_caller_address(tokenized_bond.contract_address, from);
+    tokenized_bond.make_transfer(transfer);
 }
 
 #[test]
-fn test_is_inter_transfer_after_expiry_when_paused_expired_and_not_minter() {
-    let (tokenized_bond, _minter) = setup_contract_with_minter();
-    let receiver = setup_receiver();
+fn test_make_transfer_after_expiry_when_paused_to_minter() {
+    let (tokenized_bond, minter) = setup_contract_with_minter();
+    let from = address_with_tokens(tokenized_bond, minter);
+    let transfer = setup_transfer(from: from, to: minter, amount: AMOUNT_TRANSFERRED());
 
     start_cheat_caller_address(tokenized_bond.contract_address, OWNER());
     tokenized_bond.pause_itr_after_expiry(TOKEN_ID());
 
     start_cheat_block_timestamp_global(TIME_IN_THE_FUTURE() + 1);
-
-    assert(
-        !tokenized_bond.is_inter_transfer_after_expiry(TOKEN_ID(), receiver),
-        'Fail expired without minter',
-    );
+    start_cheat_caller_address(tokenized_bond.contract_address, from);
+    tokenized_bond.make_transfer(transfer);
 }
