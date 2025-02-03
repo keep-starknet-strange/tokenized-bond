@@ -2,7 +2,9 @@ mod utils;
 use starknet::class_hash::class_hash_const;
 use tokenized_bond::{TokenizedBond, ITokenizedBondDispatcher, ITokenizedBondDispatcherTrait};
 use openzeppelin_access::ownable::OwnableComponent;
-use openzeppelin_access::ownable::interface::{IOwnableTwoStepDispatcher, IOwnableTwoStepDispatcherTrait};
+use openzeppelin_access::ownable::interface::{
+    IOwnableTwoStepDispatcher, IOwnableTwoStepDispatcherTrait,
+};
 use openzeppelin_upgrades::upgradeable::UpgradeableComponent;
 use openzeppelin_security::pausable::PausableComponent;
 use openzeppelin_token::erc1155::ERC1155Component;
@@ -977,7 +979,7 @@ fn test_tokenized_bond_transfer_ownership() {
     assert(ownable.owner() == NEW_OWNER(), 'transfer owner failed');
 
     let expected_event = OwnableComponent::Event::OwnershipTransferred(
-         OwnableComponent::OwnershipTransferred { previous_owner: OWNER(), new_owner: NEW_OWNER() }
+        OwnableComponent::OwnershipTransferred { previous_owner: OWNER(), new_owner: NEW_OWNER() },
     );
     spy.assert_emitted(@array![(ownable.contract_address, expected_event)]);
 }
