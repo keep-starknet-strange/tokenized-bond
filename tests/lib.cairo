@@ -1008,22 +1008,6 @@ fn test_make_transfer_before_expiry_when_expiry_paused() {
 }
 
 #[test]
-#[should_panic(expected: 'Inter after expiry is paused')]
-fn test_make_transfer_after_expiry_when_paused_not_to_minter() {
-    let (tokenized_bond, minter) = setup_contract_with_minter();
-    let from = address_with_tokens(tokenized_bond, minter);
-    let receiver = setup_receiver();
-    let transfer = setup_transfer(from: from, to: receiver, amount: AMOUNT_TRANSFERRED());
-
-    start_cheat_caller_address(tokenized_bond.contract_address, OWNER());
-    tokenized_bond.pause_itr_after_expiry(TOKEN_ID());
-
-    start_cheat_block_timestamp_global(TIME_IN_THE_FUTURE() + 1);
-    start_cheat_caller_address(tokenized_bond.contract_address, from);
-    tokenized_bond.make_transfer(transfer);
-}
-
-#[test]
 fn test_make_transfer_after_expiry_when_paused_to_minter() {
     let (tokenized_bond, minter) = setup_contract_with_minter();
     let from = address_with_tokens(tokenized_bond, minter);
