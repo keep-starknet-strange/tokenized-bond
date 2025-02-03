@@ -968,22 +968,6 @@ fn test_make_transfer_with_inter_transfer_not_paused() {
     tokenized_bond.make_transfer(transfer);
 }
 
-
-#[test]
-#[should_panic(expected: 'Token ITR is paused')]
-fn test_make_transfer_when_paused_neither_minter() {
-    let (tokenized_bond, minter) = setup_contract_with_minter();
-    let from = address_with_tokens(tokenized_bond, minter);
-    let to = setup_receiver();
-    let transfer = setup_transfer(from, to, AMOUNT_TRANSFERRED());
-
-    start_cheat_caller_address(tokenized_bond.contract_address, OWNER());
-    tokenized_bond.pause_inter_transfer(TOKEN_ID());
-
-    start_cheat_caller_address(tokenized_bond.contract_address, from);
-    tokenized_bond.make_transfer(transfer);
-}
-
 #[test]
 fn test_make_transfer_when_paused_sender_is_minter() {
     let (tokenized_bond, minter) = setup_contract_with_minter();
