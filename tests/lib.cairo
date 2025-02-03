@@ -1,6 +1,8 @@
 mod utils;
 use starknet::class_hash::class_hash_const;
 use tokenized_bond::{TokenizedBond, ITokenizedBondDispatcher, ITokenizedBondDispatcherTrait};
+use openzeppelin_access::ownable::OwnableComponent;
+use openzeppelin_access::ownable::interface::{IOwnableDispatcher, IOwnableDispatcherTrait};
 use openzeppelin_upgrades::upgradeable::UpgradeableComponent;
 use openzeppelin_security::pausable::PausableComponent;
 use openzeppelin_token::erc1155::ERC1155Component;
@@ -8,7 +10,7 @@ use openzeppelin_token::erc1155::interface::{IERC1155Dispatcher, IERC1155Dispatc
 use tokenized_bond::utils::constants::{
     OWNER, MINTER, ZERO_ADDRESS, INTEREST_RATE, INTEREST_RATE_ZERO, MINT_AMOUNT, TOKEN_NAME,
     TOKEN_ID, TIME_IN_THE_FUTURE, CUSTODIAL_FALSE, NOT_MINTER, NEW_MINTER, AMOUNT_TRANSFERRED,
-    TRANSFER_AMOUNT,
+    TRANSFER_AMOUNT, NEW_OWNER
 };
 use snforge_std::{
     EventSpyAssertionsTrait, spy_events, start_cheat_caller_address, stop_cheat_caller_address,
@@ -955,4 +957,21 @@ fn test_upgrade_success() {
 fn test_upgrade_not_owner() {
     let (tokenized_bond, _minter) = setup_contract_with_minter();
     tokenized_bond.upgrade(class_hash_const::<'UPGRADE'>());
+}
+
+#[test]
+fn test_tokenized_bond_transfer_ownership() {
+    let mut spy = spy_events();
+    let (tokenized_bond, _minter) = setup_contract_with_minter();
+    let ownable = IOwnableDispatcher { contract_address: tokenized_bond.contract_address };
+    
+    assert(ownable.owner() == OWNER(), 'Initial wrong owner');
+
+    start_cheat_caller_address(tokenized_bond.contract_address, OWNER());
+    ownable.transfer_ownership(NEW_OWNER());
+
+    let expected_event = OwnableComponent::Event::OwnershipTransferred(
+        OwnableComponent::OwnershipTransferred { previous_owner: OWNER(), new_owner: NEW_OWNER() },
+    );
+    spy.assert_emitted(@array![(tokenized_bond.contract_address, expected_event)]);
 }
