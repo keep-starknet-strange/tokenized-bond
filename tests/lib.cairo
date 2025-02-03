@@ -990,7 +990,6 @@ fn test_tokenized_bond_transfer_ownership() {
 fn test_tokenized_bond_transfer_ownership_not_owner() {
     let (tokenized_bond, _minter) = setup_contract_with_minter();
     let ownable = IOwnableTwoStepDispatcher { contract_address: tokenized_bond.contract_address };
-
     ownable.transfer_ownership(NEW_OWNER());
     assert(ownable.owner() == NEW_OWNER().into(), 'transfer owner failed');
 }
