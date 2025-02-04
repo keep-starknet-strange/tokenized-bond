@@ -993,3 +993,22 @@ fn test_tokenized_bond_transfer_ownership_not_owner() {
     ownable.transfer_ownership(NEW_OWNER());
     assert(ownable.owner() == NEW_OWNER().into(), 'transfer owner failed');
 }
+
+#[test]
+#[should_panic(expected: 'Pausable: paused')]
+fn test_pause_when_already_paused() {
+    let mut tokenized_bond = ITokenizedBondDispatcher { contract_address: setup() };
+
+    start_cheat_caller_address(tokenized_bond.contract_address, OWNER());
+    tokenized_bond.pause();
+    tokenized_bond.pause();
+}
+
+#[test]
+#[should_panic(expected: 'Pausable: not paused')]
+fn test_unpause_when_not_paused() {
+    let mut tokenized_bond = ITokenizedBondDispatcher { contract_address: setup() };
+
+    start_cheat_caller_address(tokenized_bond.contract_address, OWNER());
+    tokenized_bond.unpause();
+}
