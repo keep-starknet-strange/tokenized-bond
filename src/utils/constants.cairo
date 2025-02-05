@@ -4,6 +4,10 @@ pub fn OWNER() -> ContractAddress {
     contract_address_const::<'OWNER'>()
 }
 
+pub fn NEW_OWNER() -> ContractAddress {
+    contract_address_const::<'NEW_OWNER'>()
+}
+
 pub fn MINTER() -> ContractAddress {
     contract_address_const::<'MINTER'>()
 }

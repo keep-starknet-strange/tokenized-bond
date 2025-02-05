@@ -1,5 +1,7 @@
 # Tokenized Bond Smart Contract
 
+[![codecov](https://codecov.io/gh/keep-starknet-strange/tokenized-bond/graph/badge.svg?token=QXMjYRYDOH)](https://codecov.io/gh/keep-starknet-strange/tokenized-bond)
+
 Ejara smart contract implementation for tokenized bonds using the ERC-1155 standard, built with Cairo 1.0.
 
 ## Overview
