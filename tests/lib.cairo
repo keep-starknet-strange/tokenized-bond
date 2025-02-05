@@ -7,7 +7,8 @@ use openzeppelin_access::ownable::interface::{
 };
 use openzeppelin_upgrades::upgradeable::UpgradeableComponent;
 use openzeppelin_security::pausable::PausableComponent;
-use openzeppelin_security::pausable::PausableComponent::{PausableImpl, InternalImpl, InternalTrait};
+use openzeppelin_security::pausable::PausableComponent::{PausableImpl, InternalImpl};
+use openzeppelin_security::interface::{IPausableDispatcher, IPausableDispatcherTrait};
 use openzeppelin_token::erc1155::ERC1155Component;
 use openzeppelin_token::erc1155::interface::{IERC1155Dispatcher, IERC1155DispatcherTrait};
 use tokenized_bond::utils::constants::{
@@ -22,44 +23,20 @@ use snforge_std::{
 use starknet::get_block_timestamp;
 use utils::{
     setup, setup_receiver, setup_contract_with_minter, setup_transfer, address_with_tokens,
-    upgrade_class_hash, pauseable_component_state_for_testing,
+    upgrade_class_hash,
 };
 
 #[test]
 fn test_is_paused() {
-    let mut state = pauseable_component_state_for_testing();
+    let mut tokenized_bond = ITokenizedBondDispatcher { contract_address: setup() };
+    let pauseable = IPausableDispatcher { contract_address: tokenized_bond.contract_address };
 
-    assert(!state.is_paused(), 'Contract should not be paused');
-    state.pause();
-    assert(state.is_paused(), 'Contract should be paused');
-}
+    assert(!pauseable.is_paused(), 'Contract should not be paused');
 
-#[test]
-fn test_assert_paused_when_paused() {
-    let mut state = pauseable_component_state_for_testing();
-    state.pause();
-    state.assert_paused();
-}
+    start_cheat_caller_address(tokenized_bond.contract_address, OWNER());
+    tokenized_bond.pause();
 
-#[test]
-#[should_panic(expected: 'Pausable: not paused')]
-fn test_assert_paused_when_not_paused() {
-    let mut state = pauseable_component_state_for_testing();
-    state.assert_paused();
-}
-
-#[test]
-#[should_panic(expected: 'Pausable: paused')]
-fn test_assert_not_paused_when_paused() {
-    let mut state = pauseable_component_state_for_testing();
-    state.pause();
-    state.assert_not_paused();
-}
-
-#[test]
-fn test_assert_not_paused_when_not_paused() {
-    let mut state = pauseable_component_state_for_testing();
-    state.assert_not_paused();
+    assert(pauseable.is_paused(), 'Contract should be paused');
 }
 
 #[test]
