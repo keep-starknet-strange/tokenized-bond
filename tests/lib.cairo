@@ -1,3 +1,4 @@
+use core::num::traits::Zero;
 mod utils;
 use starknet::class_hash::class_hash_const;
 use tokenized_bond::{TokenizedBond, ITokenizedBondDispatcher, ITokenizedBondDispatcherTrait};
@@ -1059,6 +1060,7 @@ fn test_make_transfer_after_expiry_when_paused_to_minter() {
     tokenized_bond.make_transfer(transfer);
 }
 
+#[test]
 fn test_tokenized_bond_transfer_ownership() {
     let mut spy = spy_events();
     let (tokenized_bond, _minter) = setup_contract_with_minter();
@@ -1089,4 +1091,23 @@ fn test_tokenized_bond_transfer_ownership_not_owner() {
 
     ownable.transfer_ownership(NEW_OWNER());
     assert(ownable.owner() == NEW_OWNER().into(), 'transfer owner failed');
+}
+
+#[test]
+fn test_tokenized_bond_renounce_ownership_success() {
+    let (tokenized_bond, _minter) = setup_contract_with_minter();
+    let ownable = IOwnableTwoStepDispatcher { contract_address: tokenized_bond.contract_address };
+
+    start_cheat_caller_address(tokenized_bond.contract_address, OWNER());
+    ownable.renounce_ownership();
+    assert(ownable.owner().is_zero(), 'renounce owner failed');
+}
+
+#[test]
+#[should_panic(expected: 'Caller is not the owner')]
+fn test_tokenized_bond_renounce_ownership_when_not_owner() {
+    let (tokenized_bond, _minter) = setup_contract_with_minter();
+    let ownable = IOwnableTwoStepDispatcher { contract_address: tokenized_bond.contract_address };
+
+    ownable.renounce_ownership();
 }
