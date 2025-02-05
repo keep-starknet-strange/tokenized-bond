@@ -464,7 +464,7 @@ pub mod TokenizedBond {
     }
 
     #[generate_trait]
-    impl InternalImpl of InternalTrait {
+     impl InternalImpl of InternalTrait {
         fn only_token_minter(self: @ContractState, token_id: u256) {
             assert(
                 self.tokens.entry(token_id).read().minter == get_caller_address(),
