@@ -1,3 +1,4 @@
+use PausableComponent::InternalTrait;
 mod utils;
 use starknet::class_hash::class_hash_const;
 use tokenized_bond::{TokenizedBond, ITokenizedBondDispatcher, ITokenizedBondDispatcherTrait};
@@ -7,6 +8,7 @@ use openzeppelin_access::ownable::interface::{
 };
 use openzeppelin_upgrades::upgradeable::UpgradeableComponent;
 use openzeppelin_security::pausable::PausableComponent;
+use openzeppelin_security::pausable::PausableComponent::{PausableImpl, InternalImpl};
 use openzeppelin_token::erc1155::ERC1155Component;
 use openzeppelin_token::erc1155::interface::{IERC1155Dispatcher, IERC1155DispatcherTrait};
 use tokenized_bond::utils::constants::{
@@ -21,8 +23,17 @@ use snforge_std::{
 use starknet::get_block_timestamp;
 use utils::{
     setup, setup_receiver, setup_contract_with_minter, setup_transfer, address_with_tokens,
-    upgrade_class_hash,
+    upgrade_class_hash, pauseable_component_state_for_testing,
 };
+
+#[test]
+fn test_is_paused() {
+let mut state = pauseable_component_state_for_testing();
+
+    assert(!state.is_paused(), 'Contract should not be paused');
+    state.pause();
+    assert(state.is_paused(), 'Contract should be paused');
+}
 
 #[test]
 fn test_pause_unpause_functionality() {

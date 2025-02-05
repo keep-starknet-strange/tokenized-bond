@@ -1,12 +1,16 @@
+
 use tokenized_bond::utils::constants::{
     OWNER, TOKEN_URI, TIME_IN_THE_FUTURE, INTEREST_RATE, TOKEN_ID, MINT_AMOUNT, CUSTODIAL_FALSE,
     TOKEN_NAME, AMOUNT_TRANSFERRED,
 };
 use tokenized_bond::{TokenizedBond, ITokenizedBondDispatcher, ITokenizedBondDispatcherTrait};
+use openzeppelin_security::pausable::PausableComponent;
 use snforge_std::{
     declare, get_class_hash, ContractClassTrait, DeclareResultTrait, start_cheat_caller_address,
 };
 use starknet::{ContractAddress, ClassHash};
+
+type ComponentState = PausableComponent::ComponentState<TokenizedBond::ContractState>;
 
 pub trait SerializedAppend<T> {
     fn append_serde(ref self: Array<felt252>, value: T);
@@ -82,4 +86,8 @@ pub fn address_with_tokens(
     );
     token_contract.make_transfer(transfer);
     address_with_tokens
+}
+
+pub fn pauseable_component_state_for_testing() -> ComponentState {
+    PausableComponent::component_state_for_testing()
 }
