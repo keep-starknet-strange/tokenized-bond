@@ -496,13 +496,13 @@ pub mod TokenizedBond {
         }
 
         fn is_inter_transfer_after_expiry(
-            self: @ContractState, token_id: u256, receiever: ContractAddress,
+            self: @ContractState, token_id: u256, receiver: ContractAddress,
         ) -> bool {
             if !self.tokens.entry(token_id).read().token_itr_expiry_paused {
                 return true;
             }
             if self.tokens.entry(token_id).read().expiration_date > get_block_timestamp()
-                || self.tokens.entry(token_id).read().minter == receiever {
+                || self.tokens.entry(token_id).read().minter == receiver {
                 return true;
             }
             return false;

@@ -507,6 +507,7 @@ fn test_pause_itr_after_expiry() {
     spy.assert_emitted(@array![(tokenized_bond.contract_address, expected_tokenized_bond_event)]);
 }
 
+#[test]
 fn test_freeze_token_success() {
     let mut tokenized_bond = ITokenizedBondDispatcher { contract_address: setup() };
     let minter = setup_receiver();
@@ -962,6 +963,68 @@ fn test_upgrade_not_owner() {
 }
 
 #[test]
+fn test_make_transfer_with_inter_transfer_not_paused() {
+    let (tokenized_bond, minter) = setup_contract_with_minter();
+    let receiver = setup_receiver();
+    let transfer = setup_transfer(from: minter, to: receiver, amount: AMOUNT_TRANSFERRED());
+
+    start_cheat_caller_address(tokenized_bond.contract_address, minter);
+    tokenized_bond.make_transfer(transfer);
+}
+
+#[test]
+fn test_make_transfer_when_paused_sender_is_minter() {
+    let (tokenized_bond, minter) = setup_contract_with_minter();
+    let receiver = setup_receiver();
+    let transfer = setup_transfer(from: minter, to: receiver, amount: AMOUNT_TRANSFERRED());
+
+    start_cheat_caller_address(tokenized_bond.contract_address, OWNER());
+    tokenized_bond.pause_inter_transfer(TOKEN_ID());
+
+    start_cheat_caller_address(tokenized_bond.contract_address, minter);
+    tokenized_bond.make_transfer(transfer);
+}
+
+#[test]
+fn test_make_transfer_when_paused_receiver_is_minter() {
+    let (tokenized_bond, minter) = setup_contract_with_minter();
+    let from = address_with_tokens(tokenized_bond, minter);
+    let transfer = setup_transfer(from: from, to: minter, amount: AMOUNT_TRANSFERRED());
+
+    start_cheat_caller_address(tokenized_bond.contract_address, OWNER());
+    tokenized_bond.pause_inter_transfer(TOKEN_ID());
+
+    start_cheat_caller_address(tokenized_bond.contract_address, from);
+    tokenized_bond.make_transfer(transfer);
+}
+
+#[test]
+fn test_make_transfer_before_expiry_when_expiry_paused() {
+    let (tokenized_bond, minter) = setup_contract_with_minter();
+    let receiver = setup_receiver();
+    let transfer = setup_transfer(from: minter, to: receiver, amount: AMOUNT_TRANSFERRED());
+
+    start_cheat_caller_address(tokenized_bond.contract_address, OWNER());
+    tokenized_bond.pause_itr_after_expiry(TOKEN_ID());
+
+    start_cheat_caller_address(tokenized_bond.contract_address, minter);
+    tokenized_bond.make_transfer(transfer);
+}
+
+#[test]
+fn test_make_transfer_after_expiry_when_paused_to_minter() {
+    let (tokenized_bond, minter) = setup_contract_with_minter();
+    let from = address_with_tokens(tokenized_bond, minter);
+    let transfer = setup_transfer(from: from, to: minter, amount: AMOUNT_TRANSFERRED());
+
+    start_cheat_caller_address(tokenized_bond.contract_address, OWNER());
+    tokenized_bond.pause_itr_after_expiry(TOKEN_ID());
+
+    start_cheat_block_timestamp_global(TIME_IN_THE_FUTURE() + 1);
+    start_cheat_caller_address(tokenized_bond.contract_address, from);
+    tokenized_bond.make_transfer(transfer);
+}
+
 fn test_tokenized_bond_transfer_ownership() {
     let mut spy = spy_events();
     let (tokenized_bond, _minter) = setup_contract_with_minter();
