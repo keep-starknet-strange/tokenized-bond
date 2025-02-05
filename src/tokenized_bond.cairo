@@ -464,7 +464,7 @@ pub mod TokenizedBond {
     }
 
     #[generate_trait]
-     impl InternalImpl of InternalTrait {
+    pub impl InternalImpl of InternalTrait {
         fn only_token_minter(self: @ContractState, token_id: u256) {
             assert(
                 self.tokens.entry(token_id).read().minter == get_caller_address(),
@@ -486,6 +486,7 @@ pub mod TokenizedBond {
             receiver: ContractAddress,
         ) -> bool {
             if !self.tokens.entry(token_id).read().token_itr_paused {
+                println!("token itr not paused");
                 return true;
             }
             if (self.tokens.entry(token_id).read().minter == sender
