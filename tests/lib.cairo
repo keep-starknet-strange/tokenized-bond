@@ -97,11 +97,30 @@ fn test_pause_not_owner() {
 }
 
 #[test]
+#[should_panic(expected: 'Pausable: paused')]
+fn test_pause_already_paused() {
+    let mut tokenized_bond = ITokenizedBondDispatcher { contract_address: setup() };
+
+    start_cheat_caller_address(tokenized_bond.contract_address, OWNER());
+    tokenized_bond.pause();
+    tokenized_bond.pause();
+}
+
+#[test]
 #[should_panic(expected: 'Caller is not the owner')]
 fn test_unpause_not_owner() {
     let mut tokenized_bond = ITokenizedBondDispatcher { contract_address: setup() };
 
     tokenized_bond.pause();
+}
+
+#[test]
+#[should_panic(expected: 'Pausable: not paused')]
+fn test_unpause_not_paused() {
+    let mut tokenized_bond = ITokenizedBondDispatcher { contract_address: setup() };
+
+    start_cheat_caller_address(tokenized_bond.contract_address, OWNER());
+    tokenized_bond.unpause();
 }
 
 #[test]
