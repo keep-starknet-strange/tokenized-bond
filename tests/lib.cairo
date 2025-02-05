@@ -28,7 +28,7 @@ use utils::{
 
 #[test]
 fn test_is_paused() {
-let mut state = pauseable_component_state_for_testing();
+    let mut state = pauseable_component_state_for_testing();
 
     assert(!state.is_paused(), 'Contract should not be paused');
     state.pause();
