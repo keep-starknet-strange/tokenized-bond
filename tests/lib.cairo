@@ -36,6 +36,34 @@ fn test_is_paused() {
 }
 
 #[test]
+fn test_assert_paused_when_paused() {
+    let mut state = pauseable_component_state_for_testing();
+    state.pause();
+    state.assert_paused();
+}
+
+#[test]
+#[should_panic(expected: 'Pausable: not paused')]
+fn test_assert_paused_when_not_paused() {
+    let mut state = pauseable_component_state_for_testing();
+    state.assert_paused();
+}
+
+#[test]
+#[should_panic(expected: 'Pausable: paused')]
+fn test_assert_not_paused_when_paused() {
+    let mut state = pauseable_component_state_for_testing();
+    state.pause();
+    state.assert_not_paused();
+}
+
+#[test]
+fn test_assert_not_paused_when_not_paused() {
+    let mut state = pauseable_component_state_for_testing();
+    state.assert_not_paused();
+}
+
+#[test]
 fn test_pause_unpause_functionality() {
     let mut spy = spy_events();
     let mut tokenized_bond = ITokenizedBondDispatcher { contract_address: setup() };
