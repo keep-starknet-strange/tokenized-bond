@@ -45,7 +45,7 @@ pub mod TokenizedBond {
         upgradeable: UpgradeableComponent::Storage,
         minters: Map<ContractAddress, u8>,
         tokens: Map<u256, Token>,
-        minter_tokens: Map<ContractAddress, Vec<u256>>,
+        minter_tokens: Map<ContractAddress, Map<felt252, u256>>,
         minter_is_operator: Map<u256, bool>,
     }
 
