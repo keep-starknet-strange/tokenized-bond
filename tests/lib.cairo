@@ -175,6 +175,26 @@ fn test_remove_minter_not_owner() {
 }
 
 #[test]
+#[should_panic(expected: 'Minter does not exist')]
+fn test_remove_minter_does_not_exist() {
+    let mut tokenized_bond = ITokenizedBondDispatcher { contract_address: setup() };
+
+    start_cheat_caller_address(tokenized_bond.contract_address, OWNER());
+
+    tokenized_bond.remove_minter(MINTER());
+}
+
+#[test]
+#[should_panic(expected: 'Minter is active')]
+fn test_remove_minter_with_active_tokens() {
+    let (tokenized_bond, minter) = setup_contract_with_minter();
+
+    start_cheat_caller_address(tokenized_bond.contract_address, OWNER());
+
+    tokenized_bond.remove_minter(minter);
+}
+
+#[test]
 fn test_mint_success() {
     let mut tokenized_bond = ITokenizedBondDispatcher { contract_address: setup() };
     let minter = setup_receiver();

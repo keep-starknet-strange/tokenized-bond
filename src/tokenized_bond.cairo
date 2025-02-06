@@ -157,6 +157,7 @@ pub mod TokenizedBond {
         pub const INSUFFICIENT_BALANCE: felt252 = 'Insufficient balance';
         pub const MINTER_IS_TOKEN_OPERATOR: felt252 = 'Minter is already operator';
         pub const MINTER_NOT_TOKEN_OPERATOR: felt252 = 'Minter is not operator';
+        pub const MINTER_IS_ACTIVE: felt252 = 'Minter is active';
     }
 
     #[constructor]
@@ -278,6 +279,8 @@ pub mod TokenizedBond {
 
         fn remove_minter(ref self: ContractState, minter: ContractAddress) {
             self.ownable.assert_only_owner();
+            assert(self.minters.entry(minter).read() == 1, Errors::MINTER_DOES_NOT_EXIST);
+            assert(self.minter_tokens_len.entry(minter).read() == 0, Errors::MINTER_IS_ACTIVE);
             self.minters.entry(minter).write(0);
             self.emit(MinterRemoved { minter });
         }
