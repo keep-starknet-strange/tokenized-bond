@@ -9,7 +9,7 @@ pub mod TokenizedBond {
     use openzeppelin_token::erc1155::ERC1155Component;
     use openzeppelin_upgrades::UpgradeableComponent;
     use starknet::{ClassHash, ContractAddress, get_block_timestamp, get_caller_address};
-    use starknet::storage::{StoragePointerWriteAccess, StoragePathEntry, Map, Vec, MutableVecTrait};
+    use starknet::storage::{StoragePointerWriteAccess, StoragePathEntry, Map};
 
     component!(path: ERC1155Component, storage: erc1155, event: ERC1155Event);
     component!(path: SRC5Component, storage: src5, event: SRC5Event);
@@ -45,7 +45,8 @@ pub mod TokenizedBond {
         upgradeable: UpgradeableComponent::Storage,
         minters: Map<ContractAddress, u8>,
         tokens: Map<u256, Token>,
-        minter_tokens: Map<ContractAddress, Map<felt252, u256>>,
+        minter_tokens: Map<ContractAddress, Map<u256, u256>>,
+        minter_tokens_len: Map<ContractAddress, u256>,
         minter_is_operator: Map<u256, bool>,
     }
 
@@ -287,13 +288,13 @@ pub mod TokenizedBond {
             self.ownable.assert_only_owner();
             assert(self.minters.entry(old_minter).read() == 1, Errors::OLD_MINTER_DOES_NOT_EXIST);
             assert(self.minters.entry(new_minter).read() == 0, Errors::NEW_MINTER_ALREADY_EXISTS);
-            let number_of_tokens_to_replace = self.minter_tokens.entry(old_minter).len();
+            let number_of_tokens_to_replace = self.minter_tokens_len.entry(old_minter).read();
 
             // replace old minter with new minter in all minted tokens
             for element in 0..number_of_tokens_to_replace {
-                let token_id = self.minter_tokens.entry(old_minter).at(element).read();
+                let token_id = self.minter_tokens.entry(old_minter).entry(element).read();
 
-                self.minter_tokens.entry(old_minter).at(element).write(0);
+                self.minter_tokens.entry(old_minter).entry(element).write(0);
                 let old_minter_balance = self.erc1155.balance_of(old_minter, token_id);
 
                 // replace old minter with new minter in all minted tokens
@@ -305,13 +306,15 @@ pub mod TokenizedBond {
                 self.erc1155.burn(old_minter, token_id, old_minter_balance);
 
                 //add  new minter with respective tokens
-                self.minter_tokens.entry(new_minter).append().write(token_id);
+                self.add_token_to_minters_tokens(new_minter, token_id);
+
                 let mut token = self.tokens.entry(token_id).read();
                 token.minter = new_minter;
                 self.tokens.entry(token_id).write(token);
 
                 self.emit(MinterReplaced { token_id, old_minter, new_minter });
             };
+            self.minter_tokens_len.entry(old_minter).write(0);
             self.minters.entry(old_minter).write(0);
             self.minters.entry(new_minter).write(1);
             self.emit(MinterRemoved { minter: old_minter });
@@ -375,7 +378,8 @@ pub mod TokenizedBond {
                         name,
                     },
                 );
-            self.minter_tokens.entry(minter).append().write(token_id);
+            self.add_token_to_minters_tokens(minter, token_id);
+
             self.erc1155.mint_with_acceptance_check(minter, token_id, amount, array![].span());
         }
 
@@ -506,6 +510,14 @@ pub mod TokenizedBond {
                 return true;
             }
             return false;
+        }
+
+        fn add_token_to_minters_tokens(
+            ref self: ContractState, minter: ContractAddress, token_id: u256,
+        ) {
+            let index = self.minter_tokens_len.entry(minter).read();
+            self.minter_tokens.entry(minter).entry(index).write(token_id);
+            self.minter_tokens_len.entry(minter).write(index + 1);
         }
     }
 }
